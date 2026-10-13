@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <meta content="#09130a" name="theme-color"/>
-<title>Wanderer • Personal Terminal (V0.8)</title>
+<title>Wanderer • Personal Terminal (V0.9)</title>
 <style>
     :root { color-scheme: dark; --bg:#070f08; --panel:#0c1a0f; --panel2:#102417; --line:#47794a; --soft:#8cbd81; --bright:#b4f7a2; --muted:#71986e; --danger:#ffb586; --dark:#071108; }
     * { box-sizing:border-box; }
@@ -188,11 +188,22 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
 @media(max-width:760px){.stat-grid{grid-template-columns:1fr}}
 @media(max-width:550px){.status-display{grid-template-columns:65px minmax(0,1fr);gap:4px}.status-readouts{gap:7px;padding-top:32px}.status-readout{font-size:11px;padding:1px}.status-readout b{font-size:12px}.status-readout strong{font-size:10px}.condition-topline{font-size:10px;gap:2px}.condition-field{grid-template-columns:104px minmax(0,1fr) 36px;gap:6px}.readout-form-grid{gap:7px}}
 @media(max-width:380px){.readout-form-grid{grid-template-columns:1fr}.body-flag-text{font-size:10px}}
+
+/* V0.9: selectable readout settings */
+.status-readouts #status-custom-readouts {display:flex;flex-direction:column;gap:11px;}
+button.status-readout {width:100%;min-height:45px;text-align:left;font:inherit;color:var(--bright);background:transparent;cursor:pointer;border-top:0;border-right:0;border-bottom:0;border-radius:2px;}
+button.status-readout:hover,button.status-readout:focus-visible {background:#204627;}
+button.status-readout.active-readout {border-left-color:var(--bright);background:#1f4824;}
+.readout-editor[hidden] {display:none !important;}
+.readout-editor .field-output {font-size:12px;color:var(--bright);font-weight:700;margin-left:8px;}
+.readout-editor .field-block {margin:14px 0;}
+.readout-editor .field-block label {margin-bottom:8px;}
+.brand {overflow-wrap:anywhere;}
 </style></head>
 <body>
 <div class="shell"><div class="bezel"><main class="screen">
 <header class="mast">
-<div><div class="brand">WANDERER <span style="font-size:.60em;color:var(--soft)">// PERSONAL TERMINAL</span></div><div class="subbrand">PERSONAL INFORMATION PROCESSOR  ·  MARK IV INSPIRED  ·  V 0.8</div></div>
+<div><div class="brand"><span id="header-callsign">WANDERER</span> <span style="font-size:.60em;color:var(--soft)">// PERSONAL TERMINAL</span></div><div class="subbrand">PERSONAL INFORMATION PROCESSOR  ·  MARK IV INSPIRED  ·  V 0.9</div></div>
 <div class="top-meta"><strong id="clock">--:--</strong><span id="connection">LOCAL MODE</span></div>
 </header>
 <nav aria-label="Primary sections" class="tabbar" role="tablist">
@@ -209,9 +220,9 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
 <div class="subview active" data-subview="status"><div class="stat-grid"><div class="panel">
 <div class="row spread"><h2 style="border:0;margin:0">STATUS REPORT</h2><span class="pill">SELF-REPORTED</span></div>
 <div class="status-display">
-  <div class="status-readouts" aria-label="Condition categories">
-    <div class="status-readout top-readout"><b>CND</b><strong id="status-cond-number">100%</strong></div>
-    <div id="status-custom-readouts"><div class="status-readout"><b>RAD</b><strong>—</strong></div><div class="status-readout"><b>EFF</b><strong>—</strong></div><div class="status-readout"><b>CLK</b><strong>—</strong></div><div class="status-readout"><b>ENG</b><strong>—</strong></div></div>
+  <div class="status-readouts" aria-label="Selectable condition categories" role="tablist">
+    <button class="status-readout top-readout active-readout" id="readout-tab-cnd" data-readout-tab="cnd" aria-controls="readout-panel-condition" role="tab" aria-selected="true" type="button"><b>CND</b><strong id="status-cond-number">100%</strong></button>
+    <div id="status-custom-readouts"></div>
   </div>
   <div class="body-display">
     <div class="condition-topline"><span>LVL <b id="report-level">01</b></span><span>CND <b id="report-health">100/100</b></span><span>XP <b id="report-xp">0</b></span></div>
@@ -248,8 +259,27 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
 </div>
 <div class="metrics"><div class="metric"><strong id="level">01</strong><span>LEVEL</span></div><div class="metric"><strong id="xp">0</strong><span>TOTAL XP</span></div><div class="metric"><strong id="done-count">0</strong><span>QUESTS DONE</span></div></div>
 <div style="margin-top:17px"><div class="row spread"><strong>HYDRATION LOG</strong><small id="water-display">0 / 2,000 mL</small></div><div aria-label="Hydration toward daily goal" class="progress"><span id="water-progress"></span></div><div class="row"><button class="btn mini" id="water-add">+ 250 mL</button><button class="btn mini" id="water-undo">− 250 mL</button><button class="btn mini" id="water-reset">RESET TODAY</button></div><p class="quiet" style="margin:9px 0 0">Tracks water you log today, not measured hydration. Resets on a new day.</p></div>
-</div><div class="stat-side"><div class="panel"><h2>PROFILE</h2><label for="profile-name">Callsign / character name</label><input autocomplete="off" id="profile-name" maxlength="45"/><div class="form-grid" style="margin-top:12px"><div><label for="water-goal">Daily water goal (mL)</label><input id="water-goal" max="10000" min="250" step="250" type="number"/></div><div><label for="energy">Energy rating (1–10)</label><select id="energy"><option value="">Not logged</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><p class="quiet" style="margin:9px 0 0">Changes are saved on this computer automatically.</p></div><div class="panel" style="margin-top:16px"><h2>BODY CONDITION · MANUAL INPUT</h2><p class="quiet">Set a condition from 0 to 100 for each region. At 0 the outline becomes dotted, marked CRIPPLED, and the expression changes. These are your own game-style ratings, not medical measurements.</p><div id="condition-fields" class="condition-fields"></div><button class="btn mini" type="button" id="condition-restore">RESET ALL TO 100</button></div>
-<div class="panel" style="margin-top:16px"><h2>CUSTOM READOUTS</h2><p class="quiet">Rename RAD, EFF, CLK and ENG, and enter your own values. None of these come from a sensor.</p><div id="custom-readout-forms" class="readout-form-grid"></div></div></div></div></div><div class="subview" data-subview="special"><div class="panel"><h2>S.P.E.C.I.A.L. · SELF-RATINGS</h2><div id="special-fields"></div><p class="quiet" style="margin:7px 0 0">Just a game-style self-assessment, not a medical or personality test.</p></div></div><div class="subview" data-subview="perks"><div class="panel"><h2>PERKS</h2><div id="perk-list"></div><form class="row" id="perk-form" style="margin-top:10px"><div class="field"><label for="perk-name">Add a custom perk</label><input id="perk-name" maxlength="60" placeholder="e.g. Night Owl" required=""/></div><button class="btn" style="align-self:end" type="submit">ADD</button></form></div></div></section>
+</div><div class="stat-side"><div class="panel"><h2>PROFILE</h2><label for="profile-name">Callsign / character name</label><input autocomplete="off" id="profile-name" maxlength="45"/><div class="form-grid" style="margin-top:12px"><div><label for="profile-occupation">Occupation</label><input autocomplete="off" id="profile-occupation" maxlength="100" placeholder="e.g. Magician" type="text"/></div><div><label for="energy">Energy rating (1–10)</label><select id="energy"><option value="">Not logged</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><p class="quiet" style="margin:9px 0 0">Changes are saved on this computer automatically.</p></div><div class="panel readout-editor" id="readout-panel-condition" role="tabpanel" aria-labelledby="readout-tab-cnd" style="margin-top:16px"><h2>BODY CONDITION · MANUAL INPUT</h2><p class="quiet">Set a condition from 0 to 100 for each region. At 0 the outline becomes dotted, marked CRIPPLED, and the expression changes. These are your own game-style ratings, not medical measurements.</p><div id="condition-fields" class="condition-fields"></div><button class="btn mini" type="button" id="condition-restore">RESET ALL TO 100</button></div>
+
+<div class="panel readout-editor" id="readout-panel-rad" role="tabpanel" aria-labelledby="readout-tab-rad" style="margin-top:16px" hidden>
+<h2>RAD · CUSTOM READOUT</h2><p class="quiet">Set this game-style readout manually. It is not a sensor or measured radiation level.</p>
+<div class="field-block"><label for="rad-level">RAD level (0–100) <output class="field-output" id="rad-level-display">0%</output></label><input id="rad-level" type="range" min="0" max="100" step="1" value="0"/></div>
+<div class="field-block"><label for="rad-label">Label (optional customization)</label><input id="rad-label" maxlength="8" value="RAD"/></div>
+</div>
+<div class="panel readout-editor" id="readout-panel-wat" role="tabpanel" aria-labelledby="readout-tab-wat" style="margin-top:16px" hidden>
+<h2>WAT · HYDRATION SETTINGS</h2><p class="quiet">Your hydration log and quick-add controls stay below the character.</p>
+<div class="field-block"><label for="water-goal">Daily water goal <output class="field-output" id="water-goal-output">2,000 mL</output></label><input id="water-goal" type="range" min="250" max="10000" step="250" value="2000"/></div>
+<p class="quiet">WAT shows the percentage of your logged daily goal, not a measured hydration level.</p>
+</div>
+<div class="panel readout-editor" id="readout-panel-clk" role="tabpanel" aria-labelledby="readout-tab-clk" style="margin-top:16px" hidden>
+<h2>CLK · CUSTOM READOUT</h2><p class="quiet">Set this game-style readout manually to reflect what CLK means to you.</p>
+<div class="field-block"><label for="clk-level">CLK level (0–100) <output class="field-output" id="clk-level-display">0%</output></label><input id="clk-level" type="range" min="0" max="100" step="1" value="0"/></div>
+<div class="field-block"><label for="clk-label">Label (optional customization)</label><input id="clk-label" maxlength="8" value="CLK"/></div>
+</div>
+<div class="panel readout-editor" id="readout-panel-eng" role="tabpanel" aria-labelledby="readout-tab-eng" style="margin-top:16px" hidden>
+<h2>ENG · ENERGY RATING</h2><p class="quiet">Your self-reported energy rating, also editable in Profile.</p>
+<div class="field-block"><label for="energy-readout">Energy rating (1–10) <output class="field-output" id="energy-readout-display">Not logged</output></label><input id="energy-readout" type="range" min="1" max="10" step="1" value="5"/></div>
+</div></div></div></div><div class="subview" data-subview="special"><div class="panel"><h2>S.P.E.C.I.A.L. · SELF-RATINGS</h2><div id="special-fields"></div><p class="quiet" style="margin:7px 0 0">Just a game-style self-assessment, not a medical or personality test.</p></div></div><div class="subview" data-subview="perks"><div class="panel"><h2>PERKS</h2><div id="perk-list"></div><form class="row" id="perk-form" style="margin-top:10px"><div class="field"><label for="perk-name">Add a custom perk</label><input id="perk-name" maxlength="60" placeholder="e.g. Night Owl" required=""/></div><button class="btn" style="align-self:end" type="submit">ADD</button></form></div></div></section>
 <section aria-labelledby="tab-inv" class="view" id="view-inv" role="tabpanel">
 <h1>PERSONAL INVENTORY</h1><nav aria-label="Secondary sections" class="subnav"><button aria-pressed="false" class="subtab" data-switch="items" type="button">ITEMS</button><button aria-pressed="false" class="subtab" data-switch="add" type="button">ADD ITEM</button><button aria-pressed="false" class="subtab" data-switch="pack" type="button">PACK</button></nav>
 
@@ -278,13 +308,13 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
   const KEY = 'wanderer-personal-terminal-v1';
   const $ = id => document.getElementById(id);
   const bodyParts = {head:'HEAD',chest:'TORSO',leftArm:'LEFT ARM',rightArm:'RIGHT ARM',leftLeg:'LEFT LEG',rightLeg:'RIGHT LEG'};
-  const defaultReadouts = () => ['RAD','EFF','CLK','ENG'].map(label=>({label,value:'—'}));
+  const defaultReadouts = () => ['RAD','WAT','CLK','ENG'].map(label=>({label,value:'—'}));
   const labels = {strength:'Strength',perception:'Perception',endurance:'Endurance',charisma:'Charisma',intelligence:'Intelligence',agility:'Agility',luck:'Luck'};
   const presets = [
     {id:'preset-groove',name:'GROOVE SALAD · DOWNTEMPO',url:'https://ice5.somafm.com/groovesalad-128-mp3',preset:true},
     {id:'preset-illinois',name:'ILLINOIS STREET LOUNGE · VINTAGE',url:'https://ice5.somafm.com/illstreet-128-mp3',preset:true}
   ];
-  function fresh() { return {version:1, profile:{name:'WANDERER',water:0,waterDate:localDay(),waterGoal:2000,energy:'',limbs:{head:100,chest:100,leftArm:100,rightArm:100,leftLeg:100,rightLeg:100},readouts:defaultReadouts(),special:{strength:5,perception:5,endurance:5,charisma:5,intelligence:5,agility:5,luck:5}}, perks:[],inventory:[],quests:[],stations:[]}; }
+  function fresh() { return {version:1, profile:{name:'WANDERER',occupation:'',water:0,waterDate:localDay(),waterGoal:2000,energy:'',limbs:{head:100,chest:100,leftArm:100,rightArm:100,leftLeg:100,rightLeg:100},readouts:defaultReadouts(),special:{strength:5,perception:5,endurance:5,charisma:5,intelligence:5,agility:5,luck:5}}, perks:[],inventory:[],quests:[],stations:[]}; }
   function localDay() { const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'); }
   function esc(x) { return String(x ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function clampInt(x,min,max,fallback) {const n=Number(x);return Number.isFinite(n)?Math.min(max,Math.max(min,Math.round(n))):fallback;}
@@ -292,11 +322,12 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
     if(!raw || typeof raw!=='object' || Array.isArray(raw)) throw Error('Not a compatible save file.');
     const a=fresh(); const p=raw.profile && typeof raw.profile==='object'?raw.profile:{};
     a.profile.name=String(p.name || 'WANDERER').slice(0,45);
+    a.profile.occupation=String(p.occupation || '').slice(0,100);
     a.profile.water=clampInt(p.water,0,100000,0); a.profile.waterGoal=clampInt(p.waterGoal,250,10000,2000);
     a.profile.waterDate=/^\d{4}-\d{2}-\d{2}$/.test(p.waterDate||'')?p.waterDate:localDay();
     a.profile.energy=(Number(p.energy)>=1 && Number(p.energy)<=10)?String(Number(p.energy)):'';
     for(const k of Object.keys(bodyParts)) a.profile.limbs[k]=clampInt(p.limbs&&p.limbs[k],0,100,100);
-    if(Array.isArray(p.readouts)) for(let i=0;i<Math.min(4,p.readouts.length);i++){ const r=p.readouts[i]||{};a.profile.readouts[i]={label:String(r.label||['RAD','EFF','CLK','ENG'][i]).slice(0,8).toUpperCase(),value:String(r.value??'—').slice(0,20)}; }
+    if(Array.isArray(p.readouts)) for(let i=0;i<Math.min(4,p.readouts.length);i++){ const r=p.readouts[i]||{};a.profile.readouts[i]={label:String(r.label||['RAD','WAT','CLK','ENG'][i]).slice(0,8).toUpperCase(),value:String(r.value??'—').slice(0,20)}; }
     for(const k of Object.keys(labels)) a.profile.special[k]=clampInt(p.special&&p.special[k],1,10,5);
     a.perks=Array.isArray(raw.perks)?raw.perks.slice(0,80).map(x=>String(x).slice(0,60)).filter(Boolean):[];
     a.inventory=Array.isArray(raw.inventory)?raw.inventory.slice(0,500).map(x=>({id:String(x.id || makeId()),name:String(x.name||'').slice(0,100),category:String(x.category||'Other').slice(0,50),quantity:clampInt(x.quantity,1,99999,1),location:String(x.location||'').slice(0,100)})).filter(x=>x.name):[];
@@ -312,7 +343,14 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
   function notice(s) {$('notice').textContent=s; clearTimeout(notice.timer);notice.timer=setTimeout(()=>$('notice').textContent='',6500);}
   function waterDay() { if(state.profile.waterDate!==localDay()){state.profile.waterDate=localDay();state.profile.water=0;save();} }
   function stats(){const done=state.quests.filter(q=>q.done);const xp=done.reduce((n,q)=>n+q.xp,0);return {done:done.length,xp,level:Math.floor(xp/100)+1,active:state.quests.length-done.length};}
-  function renderHeader(){const s=stats();$('player-label').textContent='USER: '+state.profile.name.toUpperCase();$('mini-stats').textContent=`LVL ${String(s.level).padStart(2,'0')} · ${s.xp} XP · ${s.active} ACTIVE QUEST${s.active===1?'':'S'}`;}
+  function renderHeader(){const s=stats();$('header-callsign').textContent=state.profile.name.toUpperCase();document.title=state.profile.name+' • Personal Terminal (V0.9)';$('player-label').textContent='USER: '+state.profile.name.toUpperCase();$('mini-stats').textContent=`LVL ${String(s.level).padStart(2,'0')} · ${s.xp} XP · ${s.active} ACTIVE QUEST${s.active===1?'':'S'}`;}
+  let activeReadout='cnd';
+  function showReadout(id){
+    if(!['cnd','rad','wat','clk','eng'].includes(id))return;
+    activeReadout=id;
+    document.querySelectorAll('.readout-editor').forEach(panel=>{panel.hidden=panel.id!=='readout-panel-'+(id==='cnd'?'condition':id);});
+    document.querySelectorAll('[data-readout-tab]').forEach(button=>{const selected=button.dataset.readoutTab===id;button.classList.toggle('active-readout',selected);button.setAttribute('aria-selected',String(selected));});
+  }
   function renderConditionGraphics(){
     const p=state.profile,s=stats(),pairs=Object.entries(bodyParts),vals=pairs.map(([key])=>p.limbs[key]);
     const avg=Math.round(vals.reduce((sum,n)=>sum+n,0)/vals.length),broken=pairs.filter(([key])=>p.limbs[key]===0).map(([,v])=>v);
@@ -331,16 +369,29 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
       const meter=document.querySelector('[data-meter="'+key+'"]');meter.classList.toggle('crippled',isBroken);
       const flag=$('flag-'+key);flag.textContent=isBroken?'CRIPPLED':'';
     }
-    $('status-custom-readouts').innerHTML=p.readouts.map(r=>'<div class="status-readout"><b>'+esc(r.label)+'</b><strong>'+esc(r.value||'—')+'</strong></div>').join('');
+    const readouts=[
+      {id:'rad',label:p.readouts[0].label||'RAD',value:p.readouts[0].value||'—'},
+      {id:'wat',label:'WAT',value:Math.round(Math.min(100,p.water/p.waterGoal*100))+'%'},
+      {id:'clk',label:p.readouts[2].label||'CLK',value:p.readouts[2].value||'—'},
+      {id:'eng',label:'ENG',value:p.energy?p.energy+'/10':'—'}
+    ];
+    $('status-custom-readouts').innerHTML=readouts.map(r=>'<button id="readout-tab-'+r.id+'" class="status-readout" type="button" role="tab" aria-controls="readout-panel-'+r.id+'" aria-selected="false" data-readout-tab="'+r.id+'"><b>'+esc(r.label)+'</b><strong>'+esc(r.value)+'</strong></button>').join('');
+    showReadout(activeReadout);
   }
   function renderConditionControls(){
     $('condition-fields').innerHTML=Object.entries(bodyParts).map(([key,label])=>{
       const val=state.profile.limbs[key];
       return '<div class="condition-field '+(val===0?'crippled':'')+'"><label for="condition-'+key+'">'+label+'</label><input id="condition-'+key+'" data-condition="'+key+'" type="range" min="0" max="100" step="5" value="'+val+'" aria-label="'+label+' condition percent"><output id="condition-value-'+key+'">'+val+'%</output></div>';
     }).join('');
-    $('custom-readout-forms').innerHTML=state.profile.readouts.map((r,i)=>'<div class="readout-setting"><label for="readout-label-'+i+'">READOUT '+(i+1)+'</label><input id="readout-label-'+i+'" data-readout-label="'+i+'" type="text" maxlength="8" value="'+esc(r.label)+'" aria-label="Readout '+(i+1)+' label"><input data-readout-value="'+i+'" type="text" maxlength="20" value="'+esc(r.value)+'" aria-label="Readout '+(i+1)+' value"></div>').join('');
+    for(const [id,i] of [['rad',0],['clk',2]]){
+      const raw=parseFloat(state.profile.readouts[i].value);
+      const val=Number.isFinite(raw)?clampInt(raw,0,100,0):0;
+      $(id+'-level').value=val;$(id+'-level-display').textContent=val+'%';$(id+'-label').value=state.profile.readouts[i].label||id.toUpperCase();
+    }
+    $('energy-readout').value=state.profile.energy||5;
+    $('energy-readout-display').textContent=state.profile.energy?state.profile.energy+'/10':'Not logged';
   }
-  function renderStats(){waterDay();const p=state.profile,s=stats();$('level').textContent=String(s.level).padStart(2,'0');$('xp').textContent=s.xp;$('done-count').textContent=s.done;$('profile-name').value=p.name;$('water-goal').value=p.waterGoal;$('energy').value=p.energy;
+  function renderStats(){waterDay();const p=state.profile,s=stats();$('level').textContent=String(s.level).padStart(2,'0');$('xp').textContent=s.xp;$('done-count').textContent=s.done;$('profile-name').value=p.name;$('profile-occupation').value=p.occupation;$('water-goal').value=p.waterGoal;$('water-goal-output').textContent=p.waterGoal.toLocaleString()+' mL';$('energy').value=p.energy;
     $('water-display').textContent=p.water.toLocaleString()+' / '+p.waterGoal.toLocaleString()+' mL';$('water-progress').style.width=Math.min(100,p.water/p.waterGoal*100)+'%';
     $('special-fields').innerHTML=Object.entries(labels).map(([k,v])=>`<div class="special-item"><label for="special-${k}">${v.toUpperCase()}</label><input id="special-${k}" data-special="${k}" type="range" min="1" max="10" value="${p.special[k]}"><output id="special-value-${k}">${p.special[k]}</output></div>`).join('');
     $('perk-list').innerHTML=state.perks.length?state.perks.map((x,i)=>`<div class="row spread" style="margin:6px 0"><span>✦ ${esc(x)}</span><button class="btn mini danger" data-remove-perk="${i}" aria-label="Remove perk ${esc(x)}">REMOVE</button></div>`).join(''):'<p class="quiet">No perks entered yet.</p>';
@@ -373,16 +424,15 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
     Object.keys(bodyParts).forEach(k=>state.profile.limbs[k]=100);
     renderConditionControls();renderConditionGraphics();save();notice('All body regions restored to 100%.');
   });
-  $('custom-readout-forms').addEventListener('input',e=>{
-    if(e.target.dataset.readoutLabel!==undefined){
-      const i=Number(e.target.dataset.readoutLabel);state.profile.readouts[i].label=e.target.value.toUpperCase().slice(0,8);
-    } else if(e.target.dataset.readoutValue!==undefined){
-      const i=Number(e.target.dataset.readoutValue);state.profile.readouts[i].value=e.target.value.slice(0,20);
-    } else return;
-    renderConditionGraphics();save();
-  });
-  $('energy').addEventListener('change',e=>{state.profile.energy=e.target.value;save();});
-  $('water-goal').addEventListener('change',e=>{state.profile.waterGoal=clampInt(e.target.value,250,10000,2000);save();renderStats();});
+  document.querySelector('.status-readouts').addEventListener('click',e=>{const b=e.target.closest('[data-readout-tab]');if(b)showReadout(b.dataset.readoutTab);});
+  for(const id of ['rad','clk']){
+    $(id+'-level').addEventListener('input',e=>{const i=id==='rad'?0:2;const val=clampInt(e.target.value,0,100,0);state.profile.readouts[i].value=val+'%';$(id+'-level-display').textContent=val+'%';renderConditionGraphics();save();});
+    $(id+'-label').addEventListener('input',e=>{const i=id==='rad'?0:2;state.profile.readouts[i].label=e.target.value.toUpperCase().slice(0,8);renderConditionGraphics();save();});
+  }
+  $('energy-readout').addEventListener('input',e=>{state.profile.energy=String(clampInt(e.target.value,1,10,5));$('energy').value=state.profile.energy;$('energy-readout-display').textContent=state.profile.energy+'/10';renderConditionGraphics();save();});
+  $('profile-occupation').addEventListener('change',e=>{state.profile.occupation=e.target.value.trim().slice(0,100);e.target.value=state.profile.occupation;save();});
+  $('energy').addEventListener('change',e=>{state.profile.energy=e.target.value;$('energy-readout').value=state.profile.energy||5;$('energy-readout-display').textContent=state.profile.energy?state.profile.energy+'/10':'Not logged';renderConditionGraphics();save();});
+  $('water-goal').addEventListener('input',e=>{state.profile.waterGoal=clampInt(e.target.value,250,10000,2000);save();renderStats();});
   $('water-add').addEventListener('click',()=>{waterDay();state.profile.water=Math.min(100000,state.profile.water+250);save();renderStats();});
   $('water-undo').addEventListener('click',()=>{waterDay();state.profile.water=Math.max(0,state.profile.water-250);save();renderStats();});
   $('water-reset').addEventListener('click',()=>{state.profile.water=0;state.profile.waterDate=localDay();save();renderStats();});

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#061008">
+<title>THE MAJESTIC // PIP-BOY MAP V1.2</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+<style>
+:root{color-scheme:dark;--bg:#061008;--line:#39633b;--bright:#b4f7a2;--soft:#8cbd81;--dark:#071108}
+*{box-sizing:border-box}
+body{background:#030804;color:var(--bright);font:14px Consolas,"Courier New",monospace;margin:0}
+main{margin:auto;max-width:1100px;padding:13px}
+header{border:2px solid #47784a;border-radius:12px;padding:12px;background:linear-gradient(145deg,#143419,#071208);margin-bottom:12px}
+h1{font-size:clamp(17px,4vw,23px);letter-spacing:.1em;margin:0}
+h2{font-size:14px;margin:14px 0}
+a{color:#c8fcb0}
+button,input,summary{font:inherit}
+button{cursor:pointer}
+.btn{background:#132b18;border:1px solid #4c7f50;color:#b4f7a2;padding:9px 11px;border-radius:3px}
+.btn:hover,.btn:focus-visible{background:#24532b}
+.btn.primary{background:#24582a;border-color:#97d988}
+.btn.mini{font-size:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row.spread{justify-content:space-between}
+.panel{border:1px solid #345d35;padding:13px;background:#09190c}
+.quiet,small{color:#8cbd81;font-size:11px}
+input[type=range]{accent-color:#a2ef8a}
+.info{margin-top:12px;border-top:1px dashed var(--line);padding:10px 0;font-size:12px}
+.map-outer{background:#061008;border:1px solid var(--line);padding:7px;margin-top:12px}
+.map-note{font-size:11px;margin-top:9px}
+#map-canvas{min-height:490px}
+</style>
+<link rel="stylesheet" href="./map-upgrade.css">
+</head>
+<body>
+<main>
+<header><div class="row spread"><h1>⌖ PERSONAL TERMINAL // WORLD MAP</h1><a href="./">← BACK TO PIP-BOY</a></div>
+<small>NIGHT VISION · ALWAYS GREEN · OPENSTREETMAP DATA · NO CLUSTERING</small></header>
+<div class="panel">
+<div class="row spread"><div><h2>GEOGRAPHICAL SURVEY // MARK IV</h2><div class="quiet" id="map-place">Default map: Chicago · GPS inactive</div></div>
+<button class="btn primary" id="find-me" type="button">⌖ CENTER ON ME</button></div>
+<div class="map-toolbar">
+<div><div class="row spread"><strong>FREQUENT LOCATION SCANS</strong><small id="map-selected-count">0 CATEGORIES</small></div>
+<div class="map-category-grid" id="map-common-cats" aria-label="Frequent category buttons"></div></div>
+<details id="map-more"><summary>▸ ALL OTHER LOCATION CATEGORIES</summary><div id="map-more-cats" class="map-category-grid"></div></details>
+<div class="map-controls-grid">
+<div><label for="map-size">ICON SIZE <output id="map-size-value">32 PX</output></label><input id="map-size" type="range" min="22" max="54" step="2" value="32"></div>
+<div><label for="map-density">MAX VISIBLE ICONS <output id="map-density-value">45 ICONS</output></label><input id="map-density" type="range" min="10" max="110" step="5" value="45"></div>
+<div><label for="map-visibility">ICON ZOOM VISIBILITY <output id="map-visibility-value">ZOOM 9+</output></label><input id="map-visibility" type="range" min="6" max="15" step="1" value="9"></div>
+</div>
+<div class="map-action-row">
+<button class="btn mini" id="map-refresh" type="button">↻ REFRESH PLACES</button>
+<button class="btn mini" id="map-track" type="button" aria-pressed="false">▶ LIVE GPS</button>
+<button class="btn mini" id="map-follow" type="button" aria-pressed="true">⌖ FOLLOW ME</button>
+<button class="btn mini" id="map-stop" type="button">■ STOP GPS</button>
+</div>
+<div class="row spread"><small id="map-place-count">SELECT A CATEGORY</small><small id="map-track-status">GPS OFF</small></div>
+</div>
+<div class="map-outer"><div id="map-canvas" role="region" aria-label="Interactive Pip-Boy style location map" hidden></div>
+<iframe class="map-frame" id="map-iframe" title="Original OpenStreetMap fallback" hidden></iframe></div>
+<div class="map-note">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> · <a href="https://www.openstreetmap.org/#map=12/41.8781/-87.6298" target="_blank" rel="noopener noreferrer">OPEN FULL MAP</a></div>
+<div class="info" id="map-feedback">Choose a category to load individual place icons; expand More for every supported icon. Turn on live GPS only when you want to track your movement. The browser might pause GPS while your phone is locked. Route directions open in Google Maps.</div>
+</div>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+<script>
+(function(){
+const key='pipboy-map-preferences-v1';
+window.PipMapStore={
+load:()=>{try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return {}}},
+save:state=>{try{localStorage.setItem(key,JSON.stringify(state))}catch(e){console.warn('Map preference storage unavailable',e)}}
+};
+window.pipFallbackMap=function(){
+const url=new URL('https://www.openstreetmap.org/export/embed.html');
+url.searchParams.set('bbox','-87.70,41.84,-87.56,41.91');
+url.searchParams.set('layer','mapnik');
+document.getElementById('map-iframe').src=url.href;
+};
+document.getElementById('find-me').addEventListener('click',()=>window.PipMap&&window.PipMap.locateOnce());
+})();
+</script>
+<script src="./map-upgrade.js"></script>
+<script>
+if(window.PipMap)window.PipMap.open();
+else {document.getElementById('map-iframe').hidden=false;window.pipFallbackMap();}
+</script>
+</body></html>

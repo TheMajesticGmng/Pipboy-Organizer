@@ -126,7 +126,12 @@
       setup();
       gain.gain.value=amount;
       syncLevels();
-      if(ctx.state==='suspended')await ctx.resume();
+      if(ctx.state==='suspended'){
+        await Promise.race([
+          ctx.resume(),
+          new Promise((_,reject)=>setTimeout(()=>reject(new Error('Audio processing was blocked by the browser')),5500))
+        ]);
+      }
       if(token!==operation)return;
       native.pause();
       processed.src=stream;
@@ -181,8 +186,10 @@
     restore('STREAM DOES NOT ALLOW BOOST · NORMAL PLAYBACK RESTORED');
   });
   processed.addEventListener('playing',()=>{
+    $('equalizer')?.classList.add('playing');
     if(active&&gain)status.textContent=titleValue(gain.gain.value)+' BOOST ON · DYNAMIC PEAK LIMITER ACTIVE';
   });
+  processed.addEventListener('pause',()=>$('equalizer')?.classList.remove('playing'));
   $('radio-stop')?.addEventListener('click',()=>{
     operation++;busy=false;
     hideProcessed();

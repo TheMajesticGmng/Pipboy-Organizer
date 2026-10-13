@@ -1,10 +1,10 @@
-/* Pip-Boy Radio V1.4: Fallout.FM tuner and resilient personal audio streams.
+/* Pip-Boy Radio V1.4.5: Fallout.FM tuner and resilient personal audio streams.
    No proxying, downloading, or hidden third-party players. */
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
   const versionLabel=document.querySelector('.subbrand');
-  if(versionLabel)versionLabel.textContent=versionLabel.textContent.replace(/V\s*1\.[13]/,'V 1.4');
+  if(versionLabel)versionLabel.textContent=versionLabel.textContent.replace(/V\s*1\.[0-9.]+/,'V 1.4.5');
   const player = $('radio-player');
   const stationList = $('station-list');
   const radioView = document.querySelector('#view-radio [data-subview="listen"]');
@@ -47,6 +47,13 @@
     '.radio-source-row{display:flex;flex-wrap:wrap;gap:14px;margin:5px 0 0;font-size:12px}',
     '.radio-source-row a{color:#c8f7ad}',
     '#radio-extra-status{font-size:12px;color:#add8a1;min-height:18px;margin-top:9px}',
+    '.radio-volume{margin:14px 0;padding:12px;border:1px solid #477b43;background:#071a0a}',
+    '.radio-volume-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}',
+    '.radio-volume-top label{margin:0;color:#b4f7a2;font-weight:bold;letter-spacing:.08em}',
+    '.radio-volume-top output{font-weight:bold;font-size:16px;color:#cbffb6;min-width:46px;text-align:right}',
+    '.radio-volume-controls{display:flex;align-items:center;gap:12px}',
+    '#radio-volume-slider{flex:1;min-width:80px;width:100%;accent-color:#b4f7a2;cursor:pointer;padding:0;min-height:26px}',
+    '#radio-volume-mute{flex:0 0 auto;min-width:83px}',
     '.radio-tuner .btn:focus-visible{outline:2px solid white}',
     '@media(max-width:500px){.radio-tuner{padding:10px}.radio-fallout-list .station{grid-template-columns:1fr auto}}'
   ].join('\n');
@@ -97,6 +104,73 @@
   panel.appendChild(holder);
   const before=stationList.closest('.panel');
   before.parentNode.insertBefore(panel,before);
+
+  // Radio volume is intentionally controlled on the shared audio element:
+  // it applies to presets, custom frequencies, and source fallbacks alike.
+  const volumeStorageKey='pipboy-radio-volume-v145';
+  const volumePanel=document.createElement('div');
+  volumePanel.className='radio-volume';
+  volumePanel.innerHTML=
+    '<div class="radio-volume-top"><label for="radio-volume-slider">VOL · RADIO VOLUME</label>'+
+    '<output id="radio-volume-value" for="radio-volume-slider">100%</output></div>'+
+    '<div class="radio-volume-controls">'+
+    '<input id="radio-volume-slider" type="range" min="0" max="100" step="1" value="100" aria-label="Radio volume from 0 to 100 percent">'+
+    '<button type="button" class="btn mini" id="radio-volume-mute" aria-pressed="false">MUTE</button>'+
+    '</div>';
+  player.insertAdjacentElement('afterend',volumePanel);
+  const volumeSlider=$('radio-volume-slider');
+  const volumeValue=$('radio-volume-value');
+  const muteButton=$('radio-volume-mute');
+  let lastAudible=75;
+  function readSavedVolume(){
+    try{
+      const stored=localStorage.getItem(volumeStorageKey);
+      if(!stored)return {volume:100,muted:false};
+      const obj=JSON.parse(stored);
+      return {
+        volume:Math.max(0,Math.min(100,Number.isFinite(Number(obj.volume))?Math.round(Number(obj.volume)):100)),
+        muted:!!obj.muted
+      };
+    }catch {return {volume:100,muted:false};}
+  }
+  function saveVolume(){
+    try{localStorage.setItem(volumeStorageKey,JSON.stringify({volume:Math.round(player.volume*100),muted:player.muted}));}
+    catch{ /* Storage may be disabled; the controls still work. */ }
+  }
+  function renderVolume(){
+    const amount=player.muted?0:Math.round(player.volume*100);
+    volumeSlider.value=String(amount);
+    volumeValue.textContent=amount+'%';
+    const muted=player.muted||player.volume===0;
+    muteButton.textContent=muted?'UNMUTE':'MUTE';
+    muteButton.setAttribute('aria-pressed',String(muted));
+  }
+  const initialVolume=readSavedVolume();
+  player.volume=initialVolume.volume/100;
+  player.muted=initialVolume.muted;
+  if(initialVolume.volume>0)lastAudible=initialVolume.volume;
+  renderVolume();
+  volumeSlider.addEventListener('input',()=>{
+    const level=Math.max(0,Math.min(100,Number(volumeSlider.value)||0));
+    player.volume=level/100;
+    player.muted=level===0;
+    if(level>0)lastAudible=level;
+    renderVolume();saveVolume();
+  });
+  muteButton.addEventListener('click',()=>{
+    if(player.muted||player.volume===0){
+      if(player.volume===0)player.volume=lastAudible/100;
+      player.muted=false;
+    }else{
+      lastAudible=Math.round(player.volume*100);
+      player.muted=true;
+    }
+    renderVolume();saveVolume();
+  });
+  player.addEventListener('volumechange',()=>{
+    if(!player.muted&&player.volume>0)lastAudible=Math.round(player.volume*100);
+    renderVolume();saveVolume();
+  });
 
   const oldInfo=nowPanel.querySelector('.info');
   if(oldInfo)oldInfo.textContent='Radio streams play inside the Pip-Boy when supported. On failure, SomaFM automatically tries alternate servers. Fallout.fm broadcasts Ogg audio, which some browsers cannot play. YouTube/Spotify web pages are not audio-stream URLs.';

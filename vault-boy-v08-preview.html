@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Vault Boy silhouette redraw • preview v0.8</title>
+<style>
+:root{color-scheme:dark;--green:#60f48a;--muted:#8acb98;--bg:#041009;--border:#2d6a41}
+*{box-sizing:border-box}body{margin:0;background:#020905;color:var(--green);font:15px/1.4 'Courier New',monospace}
+.wrap{max-width:1000px;margin:24px auto;padding:14px}.intro{font-size:13px;color:var(--muted);margin:0 0 12px}
+.frame{border:8px ridge #37503a;border-radius:22px;padding:16px;background:#0c1a10;box-shadow:0 0 60px #000}
+.screen{position:relative;overflow:hidden;min-height:590px;border:3px solid #203b24;border-radius:12px;background:radial-gradient(ellipse at 50% 25%,#12361b,#06160a 55%,#020a05);padding:15px 20px 22px}
+.screen:before{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(to bottom,transparent 0 3px,#0005 3px 4px);opacity:.6}
+.screen>*{position:relative}.stats{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-top:2px solid var(--green);padding:5px 4px 8px;font-size:clamp(13px,2vw,17px);font-weight:bold}
+.stats b{font-weight:900}.layout{display:grid;grid-template-columns:125px minmax(0,1fr) 135px;align-items:start;gap:4px}.readouts{font-size:14px;line-height:1.9;padding-top:43px}.readouts strong{display:block}.readouts .alert{font-size:12px;min-height:80px;color:var(--green)}
+.figure{min-width:0;text-align:center}.figure svg{width:100%;max-height:370px;overflow:visible;filter:drop-shadow(0 0 5px #1eff6566)}
+.character{font-size:20px;font-weight:bold}.small-label{color:var(--muted);font-size:12px;margin-top:5px}.meter-track{fill:#06150a;stroke:var(--green);stroke-width:2}.meter-fill{fill:var(--green)}
+.body-region{fill:none;stroke:var(--green);stroke-width:4.8;stroke-linejoin:round;stroke-linecap:round}.body-region.crippled{stroke-dasharray:9 8}.face{fill:none;stroke:var(--green);stroke-linecap:round;stroke-linejoin:round;stroke-width:4.3}.eyes{fill:var(--green)}
+.note{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 15px;border-bottom:1px solid var(--border)}.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:15px 0}.control{border:1px solid var(--border);background:#06150a;padding:8px}.control label{display:flex;justify-content:space-between;font-size:12px}input[type=range]{width:100%;accent-color:var(--green)}.actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+button{font:inherit;color:var(--green);background:#0b2811;border:1px solid var(--green);padding:11px 13px;cursor:pointer}button:hover{background:#20582f}
+@media(max-width:690px){.wrap{margin:0;padding:0}.frame{border-width:5px;border-radius:0;padding:5px}.screen{padding:10px 7px}.layout{grid-template-columns:58px minmax(0,1fr) 60px}.readouts{padding-top:40px;font-size:11px}.readouts .alert{font-size:9px}.character{font-size:15px}.controls{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.figure svg{max-height:290px}}
+</style></head>
+<body><main class="wrap"><p class="intro"><strong>V0.8 DRAWING PREVIEW</strong> • <a href="vault-boy-v07-preview.html" style="color:inherit">Compare with V0.7</a> • Standalone interactive test. Your live Pip-Boy and saved quests are untouched.</p><div class="frame"><div class="screen">
+<div class="stats"><span>STATS</span><span>LVL <b>20</b></span><span>HP <b id="hp">100/100</b></span><span>AP 104/104</span><span>XP MAX</span></div>
+<div class="layout"><aside class="readouts"><strong>CND</strong><div>RAD&nbsp; 0</div><div>EFF&nbsp; —</div><div class="alert" id="alert"></div></aside>
+<section class="figure"><svg id="body" viewBox="0 0 580 465" role="img" aria-label="Interactive Vault Boy body condition. Head, arms, torso and legs respond independently to damage">
+<!-- Refined v0.8 silhouette: shortened neck and arms, broader shoulders and torso, 25% wider matched legs. -->
+<g id="shape-head" class="body-region">
+<path d="M268 174 Q274 171 276 165 Q264 156 259 145 Q251 132 253 113 Q251 103 255 95 Q248 88 251 79 Q252 73 259 68 Q258 62 265 59 Q271 61 274 61 Q277 49 285 53 Q293 58 299 51 Q305 40 313 47 Q321 52 326 49 Q335 50 338 59 Q349 62 350 70 Q359 80 356 91 Q363 101 361 115 Q361 137 349 150 Q340 160 327 163 Q314 169 319 174"/>
+</g>
+<!-- Arms slope gently outward, curve organically, and terminate in distinct splayed fingers. -->
+<g id="shape-leftArm" class="body-region" transform="translate(117.25 64.3125) scale(.5625)"><path d="M268 195 Q236 207 197 209 Q174 211 152 207 Q138 200 125 191 Q114 183 106 192 Q103 198 113 212 L126 223 Q114 218 98 216 Q85 215 85 225 Q85 233 108 235 Q91 234 83 243 Q81 252 99 251 L112 250 Q88 254 89 262 Q92 272 108 265 Q119 259 134 261 Q159 266 177 278 Q200 289 233 288 Q242 286 247 285"/></g>
+<g id="shape-rightArm" class="body-region" transform="translate(139.5625 70.5) scale(.5625)"><path d="M319 184 Q332 194 338 199 Q369 210 403 216 Q437 222 463 220 Q484 218 500 207 Q515 197 524 198 Q536 201 523 218 L511 231 Q526 229 542 231 Q553 235 547 245 Q541 251 522 251 Q550 251 555 260 Q558 270 538 271 L524 267 Q548 276 545 286 Q542 295 526 287 Q516 280 504 280 Q480 277 467 285 Q431 299 398 298 Q373 298 346 289 Q339 287 333 287"/></g>
+<!-- The torso is a continuous human silhouette; no added clothes or decorative lines. -->
+<g id="shape-chest" class="body-region"><path d="M256.2 224.6 Q241 265 239 292 Q239 321 244 342 M326.9 231.4 Q342 267 342 292 Q342 319 336 342"/></g>
+<!-- Pointed, angled footwear is defined ONLY by the outside silhouette. -->
+<g id="shape-leftLeg" class="body-region"><path d="M244 342 Q238 355 226 377 L204 415 Q191 410 178 410 Q160 410 156 419 Q154 427 170 437 Q191 449 211 452 Q231 455 242 447 Q248 440 252 428 L283 363"/></g>
+<g id="shape-rightLeg" class="body-region" transform="translate(580 0) scale(-1 1)"><path d="M244 342 Q238 355 226 377 L204 415 Q191 410 178 410 Q160 410 156 419 Q154 427 170 437 Q191 449 211 452 Q231 455 242 447 Q248 440 252 428 L283 363"/></g>
+<!-- Facial features are deliberately preserved as a separately switchable layer. -->
+<g id="face-smile" class="face" transform="translate(72.5 -12) scale(.75)">
+<path d="M267 122 l11 -5 M309 117 l11 11 M292 135 l-11 22 q0 5 10 11 M265 190 Q294 209 323 192 M267 190 Q289 198 321 192" stroke-width="4"/>
+<g class="eyes"><ellipse cx="273" cy="147" rx="4.7" ry="7.6" stroke="none"/><ellipse cx="310" cy="149" rx="4.7" ry="7.6" stroke="none"/></g></g>
+<g id="face-worried" class="face" transform="translate(72.5 -12) scale(.75)" style="display:none"><path d="M265 126 l13 -8 M308 118 l15 10 M291 133 l-8 24 q2 4 9 7 M271 193 Q289 182 313 192"/><g class="eyes"><ellipse cx="273" cy="148" rx="4.7" ry="7" stroke="none"/><ellipse cx="311" cy="148" rx="4.7" ry="7" stroke="none"/></g></g>
+<g id="face-sad" class="face" transform="translate(72.5 -12) scale(.75)" style="display:none"><path d="M265 129 l14 -12 M307 116 l15 14 M291 134 l-8 23 q2 6 9 7 M267 201 Q291 173 318 201"/><g class="eyes"><path d="M270 146 l7 8 M315 145 l-8 8" stroke-width="5"/></g></g>
+<g stroke="var(--green)" stroke-width="1.5"><g id="meter-head"><rect class="meter-track" x="257" y="24" width="74" height="12"/><rect class="meter-fill" id="fill-head" x="259" y="26" width="70" height="8"/></g>
+<g id="meter-leftArm"><rect class="meter-track" x="113" y="164" width="77" height="12"/><rect class="meter-fill" id="fill-leftArm" x="115" y="166" width="73" height="8"/></g><g id="meter-rightArm"><rect class="meter-track" x="390" y="164" width="77" height="12"/><rect class="meter-fill" id="fill-rightArm" x="392" y="166" width="73" height="8"/></g>
+<g id="meter-chest"><rect class="meter-track" x="252" y="253" width="75" height="12"/><rect class="meter-fill" id="fill-chest" x="254" y="255" width="71" height="8"/></g>
+<g id="meter-leftLeg"><rect class="meter-track" x="95" y="375" width="73" height="12"/><rect class="meter-fill" id="fill-leftLeg" x="97" y="377" width="69" height="8"/></g><g id="meter-rightLeg"><rect class="meter-track" x="424" y="375" width="73" height="12"/><rect class="meter-fill" id="fill-rightLeg" x="426" y="377" width="69" height="8"/></g></g>
+</svg><div class="character">WANDERER • Level 20</div><div class="small-label" id="condition">All regions operational</div></section>
+<aside class="readouts" style="text-align:right"><strong>STATUS</strong><div id="indicator">OK</div><div style="padding-top:12px">LIMBS</div><div id="count">6/6</div></aside></div>
+<div class="note">The neck is one-third as tall, both arms are 25% shorter than v0.7, and the torso and mirrored legs are about 25% wider. Test the injury indicators below.</div>
+<div class="controls" id="controls"></div><div class="actions"><button id="healthy">FULL CONDITION</button><button id="cripple">DEMO CRIPPLED ARM</button></div>
+</div></div></main>
+<script>
+const labels={head:'Head',chest:'Torso',leftArm:'Left arm',rightArm:'Right arm',leftLeg:'Left leg',rightLeg:'Right leg'};
+const lengths={head:70,chest:71,leftArm:73,rightArm:73,leftLeg:69,rightLeg:69};
+const state=Object.fromEntries(Object.keys(labels).map(k=>[k,100]));
+const controls=document.getElementById('controls');
+for(const [key,label] of Object.entries(labels)){const wrap=document.createElement('div');wrap.className='control';const lab=document.createElement('label');lab.htmlFor='control-'+key;lab.innerHTML='<span>'+label+'</span><output id="output-'+key+'">100%</output>';const inp=document.createElement('input');inp.type='range';inp.id='control-'+key;inp.min='0';inp.max='100';inp.step='5';inp.value='100';inp.addEventListener('input',()=>{state[key]=Number(inp.value);render()});wrap.append(lab,inp);controls.append(wrap)}
+function render(){const vals=Object.values(state),bad=Object.entries(state).filter(([k,v])=>v===0).map(([k])=>labels[k]);const mode=bad.length?'sad':vals.some(v=>v<50)?'worried':'smile';for(const [key,n] of Object.entries(state)){document.getElementById('shape-'+key).classList.toggle('crippled',n===0);document.getElementById('fill-'+key).setAttribute('width',lengths[key]*n/100);document.getElementById('output-'+key).textContent=n===0?'CRIPPLED':n+'%';document.getElementById('control-'+key).value=n}for(const k of ['smile','worried','sad'])document.getElementById('face-'+k).style.display=mode===k?'':'none';const average=Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);document.getElementById('hp').textContent=average+'/100';document.getElementById('condition').textContent=bad.length?'CRIPPLED: '+bad.join(', '):vals.some(v=>v<50)?'CONDITION WARNING':'All regions operational';document.getElementById('indicator').textContent=bad.length?'CRIPPLED':mode==='worried'?'INJURED':'OK';document.getElementById('count').textContent=(6-bad.length)+'/6';document.getElementById('alert').textContent=bad.length?'CRIPPLED':'';}
+document.getElementById('healthy').onclick=()=>{for(const k in state)state[k]=100;render()};document.getElementById('cripple').onclick=()=>{for(const k in state)state[k]=100;state.leftArm=0;render()};render();
+</script></body></html>

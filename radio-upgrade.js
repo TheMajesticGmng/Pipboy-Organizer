@@ -1,10 +1,10 @@
-/* Pip-Boy Radio V1.4.5: Fallout.FM tuner and resilient personal audio streams.
+/* Pip-Boy Radio V1.4.6: Fallout.fm presets and custom audio streams.
    No proxying, downloading, or hidden third-party players. */
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
   const versionLabel=document.querySelector('.subbrand');
-  if(versionLabel)versionLabel.textContent=versionLabel.textContent.replace(/V\s*1\.[0-9.]+/,'V 1.4.5');
+  if(versionLabel)versionLabel.textContent=versionLabel.textContent.replace(/V\s*1\.[0-9.]+/,'V 1.4.6');
   const player = $('radio-player');
   const stationList = $('station-list');
   const radioView = document.querySelector('#view-radio [data-subview="listen"]');
@@ -20,19 +20,7 @@
     id:'fallout-'+i, name:s[0], provider:'Fallout.fm',
     urls:[falloutBase+'falloutfm'+s[1]+'.ogg'], home:'https://fallout.fm/'
   }));
-  const soma = [
-    {id:'preset-groove', name:'Groove Salad · Downtempo',provider:'SomaFM',
-      urls:['https://ice5.somafm.com/groovesalad-128-mp3',
-            'https://ice6.somafm.com/groovesalad-128-mp3',
-            'https://ice5.somafm.com/groovesalad-128-aac'],
-      home:'https://somafm.com/groovesalad/'},
-    {id:'preset-illinois',name:'Illinois Street Lounge · Vintage',provider:'SomaFM',
-      urls:['https://ice5.somafm.com/illstreet-128-mp3',
-            'https://ice2.somafm.com/illstreet-128-mp3',
-            'https://ice5.somafm.com/illstreet-128-aac'],
-      home:'https://somafm.com/illstreet/'}
-  ];
-  const allPresets=fallout.concat(soma);
+  const allPresets=fallout;
   const style=document.createElement('style');
   style.textContent=[
     '.radio-tuner{border:1px solid #547b4c;background:#071c0c;padding:15px;margin:12px 0 16px}',
@@ -62,12 +50,12 @@
   const tuner=document.createElement('div');
   tuner.className='radio-tuner';
   tuner.innerHTML=
-    '<div class="row spread"><strong>⌁ FREQUENCY TUNER</strong><span class="pill">12 PRESETS</span></div>'+
+    '<div class="row spread"><strong>⌁ FREQUENCY TUNER</strong><span class="pill">10 PRESETS</span></div>'+
     '<div class="radio-dial-mark">SELECT FREQUENCY / THEN TUNE</div>'+
     '<div id="radio-tuned-name" class="radio-tuned-name" aria-live="polite"></div>'+
     '<label for="radio-dial">RADIO DIAL</label>'+
-    '<input id="radio-dial" type="range" min="0" max="11" step="1" value="0" />'+
-    '<div class="radio-frequency-ruler"><span>FALLOUT.FM</span><span>SOMAFM</span></div>'+
+    '<input id="radio-dial" type="range" min="0" max="9" step="1" value="0" />'+
+    '<div class="radio-frequency-ruler"><span>FALLOUT.FM · 01</span><span>FALLOUT.FM · 10</span></div>'+
     '<button id="radio-tune-selected" type="button" class="btn primary">▶ TUNE FREQUENCY</button>'+
     '<div id="radio-extra-status" role="status" aria-live="polite"></div>'+
     '<div class="radio-source-row"><a id="radio-source-page" target="_blank" rel="noopener noreferrer" href="https://fallout.fm/">OPEN STATION SITE ↗</a>'+
@@ -173,7 +161,7 @@
   });
 
   const oldInfo=nowPanel.querySelector('.info');
-  if(oldInfo)oldInfo.textContent='Radio streams play inside the Pip-Boy when supported. On failure, SomaFM automatically tries alternate servers. Fallout.fm broadcasts Ogg audio, which some browsers cannot play. YouTube/Spotify web pages are not audio-stream URLs.';
+  if(oldInfo)oldInfo.textContent='Radio streams play inside the Pip-Boy when supported. Fallout.fm broadcasts Ogg audio, which some browsers cannot play. YouTube/Spotify web pages are not audio-stream URLs.';
   const dial=$('radio-dial');
   const dialName=$('radio-tuned-name');
   const extra=$('radio-extra-status');
@@ -275,7 +263,7 @@
     const btn=e.target.closest('[data-station-play]');
     if(!btn)return;
     const id=btn.dataset.stationPlay;
-    const station=soma.find(x=>x.id===id)||customStation(id);
+    const station=customStation(id);
     if(!station)return; // Preserve original behavior when a custom entry is not in storage.
     e.preventDefault();
     e.stopImmediatePropagation();

@@ -36,7 +36,7 @@ function svg(cat){return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2
 function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function clamp(x,a,b,f){const n=Number(x);return Number.isFinite(n)?Math.max(a,Math.min(b,Math.round(n))):f;}
 let settings={...DEFAULT},map=null,group=null,player=null,watchId=null,hasFix=false,lastFix=null,lastHeading=0,following=true;
-let request=null,refreshTimer=null,loading=false,ready=false,resultCache=[],resultBounds=null,started=false,token=0,lastQueryKey='';
+let request=null,refreshTimer=null,ready=false,resultCache=[],resultBounds=null,token=0,lastQueryKey='',lastSearchAt=0;
 const byId=id=>cats.find(c=>c.id===id);
 function message(s){$('map-feedback').textContent=s;}
 function loadPrefs(){
@@ -69,11 +69,11 @@ function redraw(){
  if(!map||!group)return;
  group.clearLayers();
  if(map.getZoom()<settings.visibility){
-   $('map-place-count').textContent='ICON LAYER HIDDEN — ZOOM IN';
+   $('map-place-count').textContent='ZOOM IN TO '+settings.visibility+'+ TO DISPLAY ICONS (NOW '+map.getZoom()+')';
    return;
  }
  if(resultCache.length===0){
-   $('map-place-count').textContent=settings.selected.length?'NO RESULTS LOADED':'SELECT A CATEGORY';
+   $('map-place-count').textContent=settings.selected.length?'NO ICONS LOADED · SCAN IN PROGRESS OR RETRY':'SELECT A CATEGORY';
    return;
  }
  const center=map.getCenter();
@@ -94,69 +94,98 @@ function redraw(){
    mark.bindPopup(popup);group.addLayer(mark);added++;
    if(added>=settings.density)break;
  }
- $('map-place-count').textContent=added+' INDIVIDUAL LOCATIONS'+(visible.length>added?' · LIMITED BY DENSITY':'');
+ $('map-place-count').textContent=added+' INDIVIDUAL ICONS'+(visible.length>added?' · '+(visible.length-added)+' HIDDEN BY DENSITY':'')+' · '+resultCache.length+' LOADED';
 }
 function scheduleFetch(){
- if(!map||!settings.selected.length){resultCache=[];if(group)group.clearLayers();$('map-place-count').textContent='SELECT A CATEGORY';return;}
+ if(!map||!settings.selected.length){clearTimeout(refreshTimer);if(request)request.abort();token++;if(group)group.clearLayers();$('map-place-count').textContent='SELECT A CATEGORY';return;}
  clearTimeout(refreshTimer);
- refreshTimer=setTimeout(()=>fetchPlaces(),650);
+ refreshTimer=setTimeout(()=>fetchPlaces(),900);
 }
 async function fetchPlaces(){
  if(!map||!settings.selected.length)return;
- if(map.getZoom()<10){$('map-place-count').textContent='ZOOM TO LEVEL 10+ TO SEARCH NEW LOCATIONS';redraw();return;}
- const b=map.getBounds(),center=map.getCenter();
- // Limit search footprint so community Overpass servers are not queried for enormous areas.
- const latSpan=Math.min(.34,(b.getNorth()-b.getSouth())/2);
- const lonSpan=Math.min(.45,(b.getEast()-b.getWest())/2);
+ if(map.getZoom()<9){
+   redraw();
+   message('Zoom in to 9 or closer to search for new places. Already loaded icons can still show at wider zooms.');
+   return;
+ }
+ const bounds=map.getBounds(),center=map.getCenter();
+ const latSpan=Math.min(.20,Math.max(.015,(bounds.getNorth()-bounds.getSouth())*.7));
+ const lonSpan=Math.min(.28,Math.max(.02,(bounds.getEast()-bounds.getWest())*.7));
  const south=(center.lat-latSpan).toFixed(5),north=(center.lat+latSpan).toFixed(5);
  const west=(center.lng-lonSpan).toFixed(5),east=(center.lng+lonSpan).toFixed(5);
  const box=[south,west,north,east].join(',');
- const key=settings.selected.slice().sort().join(',')+'|'+[south,west,north,east].map(n=>Number(n).toFixed(2)).join(',');
- if(key===lastQueryKey && resultCache.length){redraw();return;}
+ const categoryKey=settings.selected.slice().sort().join(',');
+ const prevLat=resultBounds?(Number(resultBounds[0])+Number(resultBounds[2]))/2:0;
+ const prevLon=resultBounds?(Number(resultBounds[1])+Number(resultBounds[3]))/2:0;
+ const prevLatSpan=resultBounds?(Number(resultBounds[2])-Number(resultBounds[0]))/2:0;
+ const prevLonSpan=resultBounds?(Number(resultBounds[3])-Number(resultBounds[1]))/2:0;
+ const covered=lastQueryKey===categoryKey && resultBounds &&
+   Math.abs(center.lat-prevLat)<prevLatSpan*.38 && Math.abs(center.lng-prevLon)<prevLonSpan*.38 &&
+   latSpan<prevLatSpan*1.1 && lonSpan<prevLonSpan*1.1;
+ if(covered&&Date.now()-lastSearchAt<90000){redraw();return;}
+ // Limit queries to public volunteer-supported Overpass servers during GPS following.
+ if(lastQueryKey===categoryKey&&Date.now()-lastSearchAt<5500){redraw();return;}
  if(request)request.abort();
- const my=++token,control=new AbortController();request=control;
- const selectors=[];
+ const mine=++token;
+ const statements=[];
  for(const id of settings.selected){
    const cat=byId(id);if(!cat)continue;
-   for(const [k,v] of cat.tags){
-     for(const type of ['node','way','relation'])selectors.push(type+'["'+k+'"="'+v+'"]('+box+');');
-   }
+   for(const [k,v] of cat.tags) statements.push('nwr["'+k+'"="'+v+'"]('+box+');');
  }
- if(!selectors.length)return;
- const query='[out:json][timeout:22];('+selectors.join('')+');out center 900;';
- const timeout=setTimeout(()=>control.abort(),27000);
- $('map-place-count').textContent='SCANNING MAP…';
- try{
-   const response=await fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(query),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:control.signal});
-   if(!response.ok)throw new Error('Search service returned '+response.status);
-   const data=await response.json();
-   if(my!==token)return;
-   const parsed=[];
-   for(const o of (data.elements||[])){
-     const loc=o.lat!=null?o:o.center;if(!loc||!Number.isFinite(loc.lat)||!Number.isFinite(loc.lon))continue;
-     for(const id of settings.selected){
-       const cat=byId(id);
-       if(cat.tags.some(([k,v])=>o.tags?.[k]===v)){
-         parsed.push({id:o.type+'-'+o.id,lat:loc.lat,lon:loc.lon,category:id,name:o.tags.name||o.tags.brand||cat.name});
-         break;
-       }
+ if(!statements.length)return;
+ const query='[out:json][timeout:22];('+statements.join('')+');out center 900;';
+ const endpoints=['https://overpass.kumi.systems/api/interpreter',
+   'https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter'];
+ $('map-place-count').textContent='SCANNING PLACES…'+(resultCache.length?' · PREVIOUS ICONS RETAINED':'');
+ let data=null,error='Location service unavailable';
+ for(const endpoint of endpoints){
+   if(mine!==token)return;
+   const control=new AbortController();request=control;
+   const timer=setTimeout(()=>control.abort(),12500);
+   try{
+     const response=await fetch(endpoint,{method:'POST',body:'data='+encodeURIComponent(query),
+       headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:control.signal});
+     if(!response.ok)throw Error('HTTP '+response.status);
+     const candidate=await response.json();
+     if(!Array.isArray(candidate.elements))throw Error('Invalid map search response');
+     data=candidate;break;
+   }catch(e){
+     if(mine!==token)return;
+     error=e.name==='AbortError'?'Search timed out':e.message||error;
+   }finally{clearTimeout(timer);if(request===control)request=null;}
+ }
+ if(mine!==token)return;
+ if(!data){
+   lastSearchAt=Date.now();redraw();
+   message('Place search is temporarily unavailable ('+error+'). Existing icons remain on the map. Press REFRESH PLACES to retry.');
+   return;
+ }
+ const found=[];
+ for(const item of data.elements){
+   const loc=item.lat!=null?item:item.center;
+   if(!loc||!Number.isFinite(loc.lat)||!Number.isFinite(loc.lon))continue;
+   for(const id of settings.selected){
+     const cat=byId(id);
+     if(cat&&cat.tags.some(([k,v])=>item.tags?.[k]===v)){
+       found.push({id:item.type+'-'+item.id,lat:loc.lat,lon:loc.lon,category:id,
+         name:item.tags.name||item.tags.brand||cat.name});break;
      }
    }
-   resultCache=parsed;lastQueryKey=key;resultBounds=[south,west,north,east];
-   redraw();
-   if(!parsed.length)message('No matching OpenStreetMap places found in this view. Try another category or area; map data may be incomplete.');
-   else message('Showing individual, unclustered OpenStreetMap places. Tap any icon for its name and a directions link. Place data depends on community map coverage.');
- }catch(err){
-   if(my!==token)return;
-   if(err.name!=='AbortError')message('The public location search is temporarily unavailable. The map and GPS still work; try refreshing places.');
-   $('map-place-count').textContent='SEARCH UNAVAILABLE · RETRY';
- }finally{clearTimeout(timeout);if(my===token)request=null;}
+ }
+ // Preserve every already-loaded place as an individual map icon, not a cluster.
+ const combined=new Map(resultCache.map(item=>[item.category+'|'+item.id,item]));
+ for(const item of found)combined.set(item.category+'|'+item.id,item);
+ resultCache=[...combined.values()].slice(-4000);
+ lastQueryKey=categoryKey;resultBounds=[south,west,north,east];lastSearchAt=Date.now();
+ redraw();
+ message(found.length?'Loaded '+found.length+' matching locations. Tap icons for details and directions.'
+   :'No new matches in this area. Previously found icons have been retained.');
 }
 function categoryClick(e){
  const b=e.target.closest('[data-category]');if(!b)return;
  const id=b.dataset.category;
  settings.selected=settings.selected.includes(id)?settings.selected.filter(x=>x!==id):settings.selected.concat(id);
- persist();renderButtons();resultCache=[];lastQueryKey='';if(map)scheduleFetch();
+ if(request)request.abort();token++;lastQueryKey='';resultBounds=null;persist();renderButtons();redraw();if(map)scheduleFetch();
 }
 function onDrag(){following=false;updateTrackButtons();}
 function updateTrackButtons(){
@@ -236,13 +265,14 @@ function open(){
  for(const [id,key] of [['map-size','size'],['map-density','density'],['map-visibility','visibility']]){
    $(id).addEventListener('input',e=>{settings[key]=clamp(e.target.value,key==='size'?22:key==='density'?10:6,key==='size'?54:key==='density'?110:15,DEFAULT[key]);persist();renderButtons();redraw();});
  }
- $('map-refresh').addEventListener('click',()=>{lastQueryKey='';scheduleFetch();});
+ $('map-refresh').addEventListener('click',()=>{lastQueryKey='';resultBounds=null;lastSearchAt=0;scheduleFetch();});
  $('map-track').addEventListener('click',start);
  $('map-follow').addEventListener('click',follow);
  $('map-stop').addEventListener('click',stop);
  updateTrackButtons();
  setTimeout(()=>map.invalidateSize(),110);
- message('Map ready. Choose a category to load individually marked places. Press Live GPS to follow your position. Location is never stored in your save.');
+ message('Map ready. Select categories for individual location icons. Your previously selected categories load automatically. Location coordinates are not saved.');
+ if(settings.selected.length)scheduleFetch();
 }
 window.PipMap={open,locateOnce,stop};
 })();

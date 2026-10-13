@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <meta content="#09130a" name="theme-color"/>
-<title>Wanderer • Personal Terminal (V0.4)</title>
+<title>Wanderer • Personal Terminal (V0.5)</title>
 <style>
     :root { color-scheme: dark; --bg:#070f08; --panel:#0c1a0f; --panel2:#102417; --line:#47794a; --soft:#8cbd81; --bright:#b4f7a2; --muted:#71986e; --danger:#ffb586; --dark:#071108; }
     * { box-sizing:border-box; }
@@ -189,7 +189,7 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
 <body>
 <div class="shell"><div class="bezel"><main class="screen">
 <header class="mast">
-<div><div class="brand">WANDERER <span style="font-size:.60em;color:var(--soft)">// PERSONAL TERMINAL</span></div><div class="subbrand">PERSONAL INFORMATION PROCESSOR  ·  MARK IV INSPIRED  ·  V 0.4</div></div>
+<div><div class="brand">WANDERER <span style="font-size:.60em;color:var(--soft)">// PERSONAL TERMINAL</span></div><div class="subbrand">PERSONAL INFORMATION PROCESSOR  ·  MARK IV INSPIRED  ·  V 0.5</div></div>
 <div class="top-meta"><strong id="clock">--:--</strong><span id="connection">LOCAL MODE</span></div>
 </header>
 <nav aria-label="Primary sections" class="tabbar" role="tablist">
@@ -216,34 +216,54 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
       <svg id="vault-body" viewBox="0 0 580 450" role="img" aria-label="Illustrated character with editable condition of head, chest, arms and legs">
         <defs><filter id="crt-halo" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.1"/></filter></defs>
         <g class="body-lines" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Fuller jumpsuit silhouette, rounder proportions, shorter limbs, centered head. -->
           <g id="shape-chest" class="body-region">
-            <path d="M253 166 Q264 183 264 203 L246 281 Q252 297 289 299 Q331 297 337 280 L314 203 Q318 179 327 163"/>
-            <path d="M263 207 Q287 215 318 207" stroke-width="2" opacity=".5"/>
+            <path d="M261 174 Q244 176 236 191 Q226 201 228 222 L226 281 Q227 302 241 310 Q288 322 339 310 Q351 301 349 281 L351 222 Q352 199 336 188 Q326 177 314 173"/>
+            <path d="M258 183 L287 207 L316 181 M277 188 L288 199 L301 187" stroke-width="3"/>
+            <path d="M232 282 Q290 294 345 282 M233 297 Q290 308 346 297" stroke-width="3"/>
+            <path d="M290 210 L290 282 M304 226 L307 232 M305 245 L307 249" stroke-width="2.5" opacity=".8"/>
           </g>
           <g id="shape-head" class="body-region">
-            <path d="M255 103 Q247 86 264 73 Q255 53 274 46 Q289 38 303 42 Q318 32 332 45 Q359 52 354 75 Q366 91 360 117 Q362 148 341 166 Q291 184 264 153 Q249 131 255 103 Z"/>
-            <path d="M260 80 Q272 65 286 72 Q297 59 313 67 Q334 56 348 75" stroke-width="3"/>
+            <path d="M249 97 Q250 84 259 80 Q259 69 274 60 Q285 49 301 53 Q320 48 331 62 Q342 73 336 93 L335 131 Q333 160 311 174 Q287 185 265 168 Q248 155 247 128 Z"/>
+            <!-- Bold sculpted swoop and tuft: hair belongs to head damage region. -->
+            <path d="M248 103 Q242 91 248 79 Q253 72 265 72 Q261 61 271 54 Q280 47 292 54 Q299 42 313 47 Q330 42 336 58 Q346 62 346 75 Q346 89 334 98 Q327 86 315 91 Q306 81 292 89 Q278 80 266 94 Q255 87 248 103 Z"/>
+            <path d="M261 76 Q275 62 291 69 Q303 56 318 64 M285 80 Q301 71 313 78" stroke-width="3"/>
+            <path d="M258 143 Q259 161 275 171 M321 167 Q331 157 332 145" stroke-width="2.4"/>
           </g>
           <g id="shape-leftArm" class="body-region">
-            <path d="M255 171 Q227 184 199 185 Q159 186 121 169 Q113 156 103 157 Q99 161 111 171 L84 162 Q72 160 76 169 L97 178 Q74 170 71 178 Q71 183 95 189 Q70 181 73 189 Q78 196 112 199 Q154 218 197 212 L250 210"/>
+            <path d="M238 190 Q218 187 206 194 L189 200 Q174 196 157 188 L151 176 Q145 167 138 172 Q134 175 145 187 L132 181 Q121 175 118 181 Q116 187 134 196 L119 190 Q111 190 112 196 Q114 201 138 208 L125 204 Q123 210 140 216 Q166 232 191 227 L237 217"/>
+            <path d="M173 197 Q166 209 169 221" stroke-width="3"/>
           </g>
           <g id="shape-rightArm" class="body-region">
-            <path d="M327 170 Q353 183 380 185 Q420 186 461 168 Q466 158 479 157 Q485 160 469 173 L497 161 Q511 161 504 172 L486 179 Q507 170 510 181 Q509 187 482 191 Q508 183 508 193 Q502 200 468 200 Q426 218 385 213 L319 210"/>
+            <path d="M337 190 Q356 187 370 194 L387 200 Q403 196 418 188 L425 176 Q432 167 440 172 Q443 176 433 187 L446 181 Q456 175 460 181 Q463 188 445 196 L459 190 Q468 190 466 197 Q462 202 441 208 L454 204 Q456 211 438 216 Q411 232 386 227 L339 217"/>
+            <path d="M403 197 Q412 209 408 221" stroke-width="3"/>
           </g>
           <g id="shape-leftLeg" class="body-region">
-            <path d="M249 280 Q234 310 214 342 L188 395 Q167 394 160 408 Q158 415 183 421 Q206 429 224 417 L289 321"/>
+            <path d="M243 309 Q239 338 238 356 L222 388 Q206 394 205 402 Q201 410 218 414 Q242 420 257 412 Q263 406 261 398 L277 320"/>
+            <path d="M224 393 Q242 398 260 395" stroke-width="3"/>
           </g>
           <g id="shape-rightLeg" class="body-region">
-            <path d="M332 281 Q352 313 374 350 L398 396 Q422 397 425 409 Q428 418 403 423 Q382 427 363 409 L289 321"/>
+            <path d="M334 309 Q340 339 342 357 L358 388 Q372 393 375 402 Q378 411 360 414 Q337 420 323 412 Q318 408 321 398 L305 320"/>
+            <path d="M321 395 Q340 399 358 393" stroke-width="3"/>
           </g>
           <g id="face-smile" class="face-expression">
-            <path d="M273 107 q9 -9 18 1 M316 108 q10 -11 18 0" stroke-width="3"/><path d="M283 116 v4 M328 116 v4" stroke-width="5"/><path d="M307 112 l-8 17 q-2 5 9 4" stroke-width="3"/><path d="M283 140 Q307 159 329 138 Q303 146 283 140 Z" stroke-width="2.5"/><path d="M293 149 q15 5 26 -2" stroke-width="2"/>
+            <path d="M266 109 Q276 102 283 110 M301 110 Q312 102 320 109" stroke-width="3"/>
+            <path d="M276 119 v4 M310 119 v4" stroke-width="5"/>
+            <path d="M292 112 l-7 17 q-1 5 8 4" stroke-width="3"/>
+            <path d="M270 142 Q289 160 313 141 Q292 148 270 142 Z" stroke-width="2.8"/>
           </g>
           <g id="face-worried" class="face-expression" style="display:none">
-            <path d="M272 110 l19 -8 M316 102 l19 8" stroke-width="3"/><path d="M284 117 v4 M326 117 v4" stroke-width="5"/><path d="M305 112 l-8 19 q0 5 11 4" stroke-width="3"/><path d="M287 148 Q306 141 325 147" stroke-width="3"/>
+            <path d="M264 112 l19 -10 M301 102 l20 10" stroke-width="3"/>
+            <path d="M274 120 v4 M312 120 v4" stroke-width="5"/>
+            <path d="M292 113 l-7 18 q0 5 8 3" stroke-width="3"/>
+            <path d="M273 148 Q290 139 312 147" stroke-width="3.5"/>
           </g>
           <g id="face-sad" class="face-expression" style="display:none">
-            <path d="M270 110 l19 -11 M314 99 l20 11" stroke-width="3"/><path d="M282 118 l4 4 M329 118 l-4 4" stroke-width="4"/><path d="M303 114 l-9 18 q0 4 11 3" stroke-width="3"/><path d="M286 155 Q307 131 330 155" stroke-width="4"/><path d="M273 129 q-4 8 0 14" stroke-width="2"/>
+            <path d="M263 112 l19 -12 M300 100 l21 12" stroke-width="3"/>
+            <path d="M274 120 l4 4 M312 120 l-4 4" stroke-width="4"/>
+            <path d="M292 114 l-7 17 q0 4 8 3" stroke-width="3"/>
+            <path d="M273 157 Q291 133 313 157" stroke-width="4"/>
+            <path d="M263 134 q-4 9 0 15" stroke-width="2"/>
           </g>
         </g>
         <g class="body-meters" stroke="currentColor" stroke-width="2">

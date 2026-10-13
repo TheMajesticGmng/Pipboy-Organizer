@@ -4,6 +4,9 @@
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
+  const versionLabel = document.querySelector('.subbrand');
+  if (versionLabel) versionLabel.textContent = versionLabel.textContent.replace(/V\s*1\.1/, 'V 1.3');
+  document.title = document.title.replace('V1.1', 'V1.3');
   const section = $('view-map');
   if (!section || $('map-canvas')) return;
   const panel = section.querySelector('.panel');

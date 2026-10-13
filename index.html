@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <meta content="#09130a" name="theme-color"/>
-<title>Wanderer • Personal Terminal (V0.9)</title>
+<title>Wanderer • Personal Terminal (V1.0)</title>
 <style>
     :root { color-scheme: dark; --bg:#070f08; --panel:#0c1a0f; --panel2:#102417; --line:#47794a; --soft:#8cbd81; --bright:#b4f7a2; --muted:#71986e; --danger:#ffb586; --dark:#071108; }
     * { box-sizing:border-box; }
@@ -24,7 +24,7 @@
     .subbrand { color:var(--muted); font-size:10px; letter-spacing:.2em; margin-top:3px; }
     .top-meta { text-align:right; color:var(--soft); font-size:11px; }
     .top-meta strong { display:block; font-size:15px; }
-    .tabbar { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:4px; border-bottom:2px solid var(--line); margin-top:13px; }
+    .tabbar { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:4px; border-bottom:2px solid var(--line); margin-top:13px; }
     .tab { padding:12px 2px; text-align:center; text-decoration:none; text-transform:uppercase; color:var(--soft); border:0; border-bottom:4px solid transparent; background:transparent; font-weight:900; letter-spacing:.13em; font-size:clamp(11px,2vw,16px); }
     .tab[aria-selected=true] { color:var(--dark); background:var(--bright); text-shadow:none; border-bottom-color:var(--bright); clip-path:polygon(0 0,100% 0,100% 80%,95% 100%,5% 100%,0 80%); }
     .tab:not([aria-selected=true]):hover { color:var(--bright); background:#234a27; }
@@ -199,21 +199,37 @@ button.status-readout.active-readout {border-left-color:var(--bright);background
 .readout-editor .field-block {margin:14px 0;}
 .readout-editor .field-block label {margin-bottom:8px;}
 .brand {overflow-wrap:anywhere;}
+
+/* Daily journal / medication inventory */
+.date-nav{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:9px;margin:-5px 0 16px;border:1px solid var(--line);background:#0a1b0c}
+.date-nav label{margin:0}.date-nav input{min-height:33px;padding:4px;width:175px;font-size:12px}
+.log-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.log-tile{border:1px solid var(--line);padding:13px;background:#102518}
+.log-tile strong,.log-tile small{display:block}
+.med-fields{display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr;gap:7px}
+.med-fields label{font-size:10px}
+.med-row,.note-row{padding:12px 0;border-bottom:1px dashed var(--line)}
+.med-dose{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.med-dose input[type=checkbox]{width:22px;height:22px;min-height:0}
+.med-dose label{margin:0}
+.note-row p{color:var(--bright);white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:600px){.tab{letter-spacing:0!important;font-size:clamp(10px,2.7vw,14px)!important}.med-fields,.log-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style></head>
 <body>
 <div class="shell"><div class="bezel"><main class="screen">
 <header class="mast">
-<div><div class="brand"><span id="header-callsign">WANDERER</span> <span style="font-size:.60em;color:var(--soft)">// PERSONAL TERMINAL</span></div><div class="subbrand">PERSONAL INFORMATION PROCESSOR  ·  MARK IV INSPIRED  ·  V 0.9</div></div>
+<div><div class="brand"><span id="header-callsign">WANDERER</span> <span style="font-size:.60em;color:var(--soft)">// PERSONAL TERMINAL</span></div><div class="subbrand">PERSONAL INFORMATION PROCESSOR  ·  MARK IV INSPIRED  ·  V 1.0</div></div>
 <div class="top-meta"><strong id="clock">--:--</strong><span id="connection">LOCAL MODE</span></div>
 </header>
 <nav aria-label="Primary sections" class="tabbar" role="tablist">
 <button aria-controls="view-stat" aria-selected="true" class="tab" data-tab="stat" id="tab-stat" role="tab">STAT</button>
 <button aria-controls="view-inv" aria-selected="false" class="tab" data-tab="inv" id="tab-inv" role="tab">INV</button>
 <button aria-controls="view-data" aria-selected="false" class="tab" data-tab="data" id="tab-data" role="tab">DATA</button>
-<button aria-controls="view-map" aria-selected="false" class="tab" data-tab="map" id="tab-map" role="tab">MAP</button>
+<button aria-controls="view-log" aria-selected="false" class="tab" data-tab="log" id="tab-log" role="tab">LOG</button><button aria-controls="view-map" aria-selected="false" class="tab" data-tab="map" id="tab-map" role="tab">MAP</button>
 <button aria-controls="view-radio" aria-selected="false" class="tab" data-tab="radio" id="tab-radio" role="tab">RADIO</button>
 </nav>
 <div class="status-strip"><span id="player-label">USER: WANDERER</span><span id="mini-stats">LVL 01 · 000 XP · 0 ACTIVE QUESTS</span></div>
+<div class="date-nav"><label for="log-date">JOURNAL DATE</label><button class="btn mini" id="log-prev" type="button">◀</button><input id="log-date" type="date"/><button class="btn mini" id="log-next" type="button">▶</button><button class="btn mini" id="log-today" type="button">TODAY</button><small>Choose a date to view its record.</small></div>
 <section aria-labelledby="tab-stat" class="view active" id="view-stat" role="tabpanel">
 <h1>PERSONNEL STATUS</h1><nav aria-label="Secondary sections" class="subnav"><button aria-pressed="false" class="subtab" data-switch="status" type="button">STATUS</button><button aria-pressed="false" class="subtab" data-switch="special" type="button">S.P.E.C.I.A.L.</button><button aria-pressed="false" class="subtab" data-switch="perks" type="button">PERKS</button></nav>
 
@@ -271,10 +287,20 @@ button.status-readout.active-readout {border-left-color:var(--bright);background
 <div class="field-block"><label for="water-goal">Daily water goal <output class="field-output" id="water-goal-output">2,000 mL</output></label><input id="water-goal" type="range" min="250" max="10000" step="250" value="2000"/></div>
 <p class="quiet">WAT shows the percentage of your logged daily goal, not a measured hydration level.</p>
 </div>
-<div class="panel readout-editor" id="readout-panel-clk" role="tabpanel" aria-labelledby="readout-tab-clk" style="margin-top:16px" hidden>
-<h2>CLK · CUSTOM READOUT</h2><p class="quiet">Set this game-style readout manually to reflect what CLK means to you.</p>
-<div class="field-block"><label for="clk-level">CLK level (0–100) <output class="field-output" id="clk-level-display">0%</output></label><input id="clk-level" type="range" min="0" max="100" step="1" value="0"/></div>
-<div class="field-block"><label for="clk-label">Label (optional customization)</label><input id="clk-label" maxlength="8" value="CLK"/></div>
+
+<div class="panel readout-editor" id="readout-panel-med" role="tabpanel" aria-labelledby="readout-tab-med" style="margin-top:16px" hidden>
+<h2>MED · DAILY CHECKLIST</h2><p class="quiet">Personal record of medication doses taken today, not a dosing recommendation or reminder.</p>
+<label for="med-select">SELECT MEDICATION</label><select id="med-select"></select><div id="med-checks" style="margin:12px 0"></div>
+<strong id="med-summary">0 / 0 DOSES CHECKED</strong><div style="margin:9px 0"><button id="med-history" class="btn mini" type="button">VIEW DAILY HISTORY →</button></div>
+<h2 style="margin-top:21px">MEDICATION INVENTORY</h2>
+<form id="med-form" class="form-grid">
+<div class="full"><label for="med-new-name">Medication name</label><input id="med-new-name" maxlength="100" required/></div>
+<div><label for="med-new-detail">Strength / notes (optional)</label><input id="med-new-detail" maxlength="100"/></div>
+<div><label for="med-new-qty">Quantity on hand</label><input id="med-new-qty" type="number" min="0" max="100000" value="0" required/></div>
+<div><label for="med-new-doses">Doses per day (1–8)</label><input id="med-new-doses" type="number" min="1" max="8" value="1" required/></div>
+<div class="full"><button class="btn primary" type="submit">+ ADD MEDICATION</button></div>
+</form><div id="med-inventory" style="margin-top:13px"></div>
+<p class="quiet">Edit any medication or its quantity below. Dose checkboxes do not automatically subtract inventory. Archived medications stay in past records.</p>
 </div>
 <div class="panel readout-editor" id="readout-panel-eng" role="tabpanel" aria-labelledby="readout-tab-eng" style="margin-top:16px" hidden>
 <h2>ENG · ENERGY RATING</h2><p class="quiet">Your self-reported energy rating, also editable in Profile.</p>
@@ -290,7 +316,16 @@ button.status-readout.active-readout {border-left-color:var(--bright);background
 
 
 <div class="subview active" data-subview="quests"><div class="panel" style="margin-top:16px"><h2>AVAILABLE OBJECTIVES</h2><div aria-label="Quest filters" class="filters" id="quest-filters"><button aria-pressed="true" class="btn mini" data-filter="active" type="button">ACTIVE</button><button aria-pressed="false" class="btn mini" data-filter="main" type="button">MAIN</button><button aria-pressed="false" class="btn mini" data-filter="side" type="button">SIDE</button><button aria-pressed="false" class="btn mini" data-filter="misc" type="button">MISC</button><button aria-pressed="false" class="btn mini" data-filter="done" type="button">COMPLETED</button><button aria-pressed="false" class="btn mini" data-filter="all" type="button">ALL</button></div><div id="quest-list"></div></div></div><div class="subview" data-subview="new"><div class="panel"><h2>NEW QUEST</h2><form class="form-grid" id="quest-form"><div class="full"><label for="quest-title">Objective</label><input id="quest-title" maxlength="130" placeholder="What needs to be done?" required=""/></div><div><label for="quest-kind">Quest type</label><select id="quest-kind"><option value="main">MAIN QUEST</option><option value="side">SIDE QUEST</option><option value="misc">MISC</option></select></div><div><label for="quest-xp">XP reward</label><input id="quest-xp" max="1000" min="0" required="" type="number" value="25"/></div><div><label for="quest-due">Due date (optional)</label><input id="quest-due" type="date"/></div><div><label for="quest-notes">Notes (optional)</label><input id="quest-notes" maxlength="180" placeholder="Next step or detail"/></div><div class="full"><button class="btn primary" type="submit">+ ACCEPT QUEST</button></div></form></div></div><div class="subview" data-subview="overview"><div class="panel"><h2>QUEST LOG</h2><div class="metrics"><div class="metric"><strong id="quest-active">0</strong><span>ACTIVE</span></div><div class="metric"><strong id="quest-finished">0</strong><span>COMPLETE</span></div><div class="metric"><strong id="quest-potential">0</strong><span>XP AVAILABLE</span></div></div><div class="info">Organize your real life like a role-playing game. Completing an objective earns XP and updates your level automatically.</div></div></div></section>
-<section aria-labelledby="tab-map" class="view" id="view-map" role="tabpanel">
+<section aria-labelledby="tab-log" class="view" id="view-log" role="tabpanel">
+<h1>DAILY JOURNAL</h1><div class="panel"><h2 id="log-heading">DAILY RECORD</h2><p class="quiet">Pick an earlier date above to review water intake, medication checkoffs and notes.</p>
+<div class="log-grid"><div class="log-tile"><small>WATER INTAKE</small><strong id="log-water">NOT LOGGED</strong><small id="log-water-status"></small></div>
+<div class="log-tile"><small>MEDICATION CHECKLIST</small><strong id="log-med">NOT LOGGED</strong><small id="log-med-status"></small></div></div>
+<h3 style="margin-top:15px">DOSE HISTORY</h3><div id="log-med-history"></div></div>
+<div class="panel" style="margin-top:16px"><h2>TIME-STAMPED NOTES</h2><div id="log-notes"></div>
+<form id="log-note-form" style="margin-top:14px"><label for="log-note-text">Note for selected date</label>
+<textarea id="log-note-text" maxlength="3000" required placeholder="Write your note here..."></textarea><button class="btn primary" id="log-note-save" type="submit">SAVE TIMESTAMPED NOTE</button></form>
+<p class="quiet">Notes are filed by the selected date and timestamped with their actual entry time. Editing preserves the original timestamp.</p></div>
+</section><section aria-labelledby="tab-map" class="view" id="view-map" role="tabpanel">
 <h1>WORLD MAP</h1><div class="panel"><div class="row spread"><div><h2 style="border:0;margin:0">OPENSTREETMAP FEED</h2><div class="quiet" id="map-place">Default preview: Chicago area · not your location</div></div><button class="btn primary" id="find-me">⌖ CENTER ON ME</button></div>
 <div class="map-outer" style="margin-top:12px"><iframe allow="geolocation" class="map-frame" id="map-iframe" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="Interactive map from OpenStreetMap"></iframe></div>
 <div class="map-note">© <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer" target="_blank">OpenStreetMap contributors</a> · Online connection required · <a href="https://www.openstreetmap.org/#map=11/41.8781/-87.6298" id="map-open" rel="noopener noreferrer" target="_blank">Open larger map</a></div>
@@ -308,13 +343,13 @@ button.status-readout.active-readout {border-left-color:var(--bright);background
   const KEY = 'wanderer-personal-terminal-v1';
   const $ = id => document.getElementById(id);
   const bodyParts = {head:'HEAD',chest:'TORSO',leftArm:'LEFT ARM',rightArm:'RIGHT ARM',leftLeg:'LEFT LEG',rightLeg:'RIGHT LEG'};
-  const defaultReadouts = () => ['RAD','WAT','CLK','ENG'].map(label=>({label,value:'—'}));
+  const defaultReadouts = () => ['RAD','WAT','MED','ENG'].map(label=>({label,value:'—'}));
   const labels = {strength:'Strength',perception:'Perception',endurance:'Endurance',charisma:'Charisma',intelligence:'Intelligence',agility:'Agility',luck:'Luck'};
   const presets = [
     {id:'preset-groove',name:'GROOVE SALAD · DOWNTEMPO',url:'https://ice5.somafm.com/groovesalad-128-mp3',preset:true},
     {id:'preset-illinois',name:'ILLINOIS STREET LOUNGE · VINTAGE',url:'https://ice5.somafm.com/illstreet-128-mp3',preset:true}
   ];
-  function fresh() { return {version:1, profile:{name:'WANDERER',occupation:'',water:0,waterDate:localDay(),waterGoal:2000,energy:'',limbs:{head:100,chest:100,leftArm:100,rightArm:100,leftLeg:100,rightLeg:100},readouts:defaultReadouts(),special:{strength:5,perception:5,endurance:5,charisma:5,intelligence:5,agility:5,luck:5}}, perks:[],inventory:[],quests:[],stations:[]}; }
+  function fresh() { return {version:1, profile:{name:'WANDERER',occupation:'',water:0,waterDate:localDay(),waterGoal:2000,energy:'',limbs:{head:100,chest:100,leftArm:100,rightArm:100,leftLeg:100,rightLeg:100},readouts:defaultReadouts(),special:{strength:5,perception:5,endurance:5,charisma:5,intelligence:5,agility:5,luck:5}}, perks:[],inventory:[],quests:[],stations:[],medications:[],days:{}}; }
   function localDay() { const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'); }
   function esc(x) { return String(x ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function clampInt(x,min,max,fallback) {const n=Number(x);return Number.isFinite(n)?Math.min(max,Math.max(min,Math.round(n))):fallback;}
@@ -326,27 +361,93 @@ button.status-readout.active-readout {border-left-color:var(--bright);background
     a.profile.water=clampInt(p.water,0,100000,0); a.profile.waterGoal=clampInt(p.waterGoal,250,10000,2000);
     a.profile.waterDate=/^\d{4}-\d{2}-\d{2}$/.test(p.waterDate||'')?p.waterDate:localDay();
     a.profile.energy=(Number(p.energy)>=1 && Number(p.energy)<=10)?String(Number(p.energy)):'';
+    a.medications=Array.isArray(raw.medications)?raw.medications.slice(0,120).map(m=>({id:String(m.id||makeId()).slice(0,100),name:String(m.name||'').slice(0,100),detail:String(m.detail||'').slice(0,100),qty:clampInt(m.qty,0,100000,0),doses:clampInt(m.doses,1,8,1),active:m.active!==false})).filter(m=>m.name):[];
+    a.days={};
+    if(raw.days&&typeof raw.days==='object'&&!Array.isArray(raw.days))for(const [date,d] of Object.entries(raw.days).slice(-2400)){
+      if(!validDay(date)||!d||typeof d!=='object')continue;
+      const meds={};
+      if(d.meds&&typeof d.meds==='object')for(const [id,m] of Object.entries(d.meds).slice(0,150)){
+        if(!m||typeof m!=='object')continue;
+        meds[String(id).slice(0,100)]={name:String(m.name||'Medication').slice(0,100),detail:String(m.detail||'').slice(0,100),taken:Array.isArray(m.taken)?m.taken.slice(0,8).map(t=>typeof t==='string'&&/^\d{4}-\d\d-\d\dT/.test(t)?t:null):[null]};
+      }
+      a.days[date]={water:clampInt(d.water,0,100000,0),goal:clampInt(d.goal,250,10000,a.profile.waterGoal),meds,notes:Array.isArray(d.notes)?d.notes.slice(0,250).map(n=>({id:String(n.id||makeId()).slice(0,100),text:String(n.text||'').slice(0,3000),at:String(n.at||new Date().toISOString()).slice(0,40),edited:String(n.edited||'').slice(0,40)})).filter(n=>n.text):[]};
+    }
     for(const k of Object.keys(bodyParts)) a.profile.limbs[k]=clampInt(p.limbs&&p.limbs[k],0,100,100);
-    if(Array.isArray(p.readouts)) for(let i=0;i<Math.min(4,p.readouts.length);i++){ const r=p.readouts[i]||{};a.profile.readouts[i]={label:String(r.label||['RAD','WAT','CLK','ENG'][i]).slice(0,8).toUpperCase(),value:String(r.value??'—').slice(0,20)}; }
+    if(Array.isArray(p.readouts)) for(let i=0;i<Math.min(4,p.readouts.length);i++){ const r=p.readouts[i]||{};a.profile.readouts[i]={label:String(r.label||['RAD','WAT','MED','ENG'][i]).slice(0,8).toUpperCase(),value:String(r.value??'—').slice(0,20)}; }
     for(const k of Object.keys(labels)) a.profile.special[k]=clampInt(p.special&&p.special[k],1,10,5);
     a.perks=Array.isArray(raw.perks)?raw.perks.slice(0,80).map(x=>String(x).slice(0,60)).filter(Boolean):[];
     a.inventory=Array.isArray(raw.inventory)?raw.inventory.slice(0,500).map(x=>({id:String(x.id || makeId()),name:String(x.name||'').slice(0,100),category:String(x.category||'Other').slice(0,50),quantity:clampInt(x.quantity,1,99999,1),location:String(x.location||'').slice(0,100)})).filter(x=>x.name):[];
     a.quests=Array.isArray(raw.quests)?raw.quests.slice(0,600).map(x=>({id:String(x.id||makeId()),title:String(x.title||'').slice(0,130),kind:['main','side','misc'].includes(x.kind)?x.kind:'misc',xp:clampInt(x.xp,0,1000,25),due:/^\d{4}-\d{2}-\d{2}$/.test(x.due||'')?x.due:'',notes:String(x.notes||'').slice(0,180),done:!!x.done})).filter(x=>x.title):[];
     a.stations=Array.isArray(raw.stations)?raw.stations.slice(0,80).map(x=>({id:String(x.id||makeId()),name:String(x.name||'').slice(0,90),url:String(x.url||'').slice(0,500)})).filter(x=>x.name && safeUrl(x.url)):[];
+    if(validDay(a.profile.waterDate)&&!a.days[a.profile.waterDate])a.days[a.profile.waterDate]={water:a.profile.water,goal:a.profile.waterGoal,meds:{},notes:[]};
     return a;
   }
+  function validDay(d){return typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&!Number.isNaN(Date.parse(d+'T12:00:00'));}
   function makeId() { return 'entry-'+Date.now()+'-'+Math.random().toString(36).slice(2,8); }
   function safeUrl(raw){try{const a=new URL(raw);return a.protocol==='https:'||a.protocol==='http:';}catch{return false;}}
   let storageOK=false, state=fresh(), filter='active', mapLoaded=false, mapLat=41.8781, mapLon=-87.6298, hasLocation=false;
   try { localStorage.setItem(KEY+'-test','yes');localStorage.removeItem(KEY+'-test');storageOK=true; const stored=localStorage.getItem(KEY);if(stored)state=normalize(JSON.parse(stored)); } catch(e){ console.warn('Local save unavailable:',e); }
   function save() { if(!storageOK)return;try{localStorage.setItem(KEY,JSON.stringify(state));$('save-status').textContent='LOCAL AUTOSAVE: ACTIVE';}catch(e){$('save-status').textContent='LOCAL AUTOSAVE FAILED — EXPORT A BACKUP';} }
   function notice(s) {$('notice').textContent=s; clearTimeout(notice.timer);notice.timer=setTimeout(()=>$('notice').textContent='',6500);}
-  function waterDay() { if(state.profile.waterDate!==localDay()){state.profile.waterDate=localDay();state.profile.water=0;save();} }
+  function day(date,create=false){
+    if(!validDay(date))return null;
+    if(!state.days[date]&&create)state.days[date]={water:0,goal:state.profile.waterGoal,meds:{},notes:[]};
+    return state.days[date]||null;
+  }
+  function waterDay(){
+    const p=state.profile,today=localDay();
+    if(p.waterDate!==today){const previous=day(p.waterDate,true);if(previous){previous.water=p.water;previous.goal=p.waterGoal;}
+      p.waterDate=today;p.water=day(today,true).water;save();
+    }else if(!day(today,false)){const r=day(today,true);r.water=p.water;r.goal=p.waterGoal;save();}
+  }
+  function recordWater(){const r=day(state.profile.waterDate,true);r.water=state.profile.water;r.goal=state.profile.waterGoal;}
+  function syncMeds(){
+    const d=day(localDay(),true);
+    for(const med of state.medications.filter(m=>m.active)){
+      const r=d.meds[med.id];
+      if(!r)d.meds[med.id]={name:med.name,detail:med.detail,taken:Array(med.doses).fill(null)};
+      else{r.name=med.name;r.detail=med.detail;r.taken=r.taken.slice(0,med.doses);while(r.taken.length<med.doses)r.taken.push(null);}
+    }
+  }
+  function medCount(d){const list=Object.values(d?.meds||{});return {all:list.reduce((n,m)=>n+m.taken.length,0),done:list.reduce((n,m)=>n+m.taken.filter(Boolean).length,0)};}
+  function stamp(t){const d=new Date(t);return Number.isNaN(d.getTime())?'Unknown time':d.toLocaleString([],{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});}
+  let viewing=localDay(),selectedMed='',editingNote='';
+  function renderMeds(){
+    syncMeds();const active=state.medications.filter(m=>m.active);
+    if(!active.some(m=>m.id===selectedMed))selectedMed=active[0]?.id||'';
+    $('med-select').innerHTML=active.length?active.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.name)+'</option>').join(''):'<option value="">Add a medication below</option>';$('med-select').value=selectedMed;
+    const d=day(localDay(),true),m=d.meds[selectedMed],total=medCount(d);
+    $('med-checks').innerHTML=m?m.taken.map((at,i)=>'<div class="med-dose"><input id="med-check-'+i+'" type="checkbox" data-dose="'+i+'" '+(at?'checked':'')+'/><label for="med-check-'+i+'">DOSE '+(i+1)+(at?' · CHECKED '+esc(stamp(at)):' · NOT CHECKED')+'</label></div>').join(''):'<p class="quiet">Select or add a medication.</p>';
+    $('med-summary').textContent=total.done+' / '+total.all+' DOSES CHECKED TODAY';
+    const readout=$('readout-tab-med');if(readout)readout.querySelector('strong').textContent=total.all?total.done+'/'+total.all:'—';
+    $('med-inventory').innerHTML=state.medications.length?state.medications.map(m=>'<div class="med-row"><div class="med-fields">'+
+      '<label>NAME<input data-med-field="name" data-med-id="'+esc(m.id)+'" maxlength="100" value="'+esc(m.name)+'"/></label>'+
+      '<label>STRENGTH / NOTES<input data-med-field="detail" data-med-id="'+esc(m.id)+'" maxlength="100" value="'+esc(m.detail)+'"/></label>'+
+      '<label>ON HAND<input type="number" min="0" max="100000" data-med-field="qty" data-med-id="'+esc(m.id)+'" value="'+m.qty+'"/></label>'+
+      '<label>DOSES / DAY<input type="number" min="1" max="8" data-med-field="doses" data-med-id="'+esc(m.id)+'" value="'+m.doses+'"/></label>'+
+      '</div><div class="row spread" style="margin-top:7px"><small>'+(m.active?'ACTIVE':'ARCHIVED')+'</small><button class="btn mini" type="button" data-archive="'+esc(m.id)+'">'+(m.active?'ARCHIVE':'RESTORE')+'</button></div></div>').join(''):'<p class="quiet">Inventory is empty.</p>';
+  }
+  function renderLog(){
+    const r=day(viewing,false);$('log-date').value=viewing;$('log-date').max=localDay();$('log-next').disabled=viewing>=localDay();
+    $('log-heading').textContent=new Date(viewing+'T12:00:00').toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    $('log-water').textContent=r?r.water.toLocaleString()+' / '+r.goal.toLocaleString()+' mL':'NOT LOGGED';
+    $('log-water-status').textContent=r?(r.water>=r.goal?'GOAL REACHED':'BELOW GOAL'):'No water record for this date';
+    const t=medCount(r),meds=Object.values(r?.meds||{});
+    $('log-med').textContent=r?(t.all?t.done+' / '+t.all+' DOSES':'NONE SCHEDULED'):'NOT LOGGED';
+    $('log-med-status').textContent=t.all?(t.done===t.all?'ALL CHECKED':'SOME UNCHECKED'):'No medication checkoffs';
+    $('log-med-history').innerHTML=meds.length?meds.map(m=>'<div class="item"><strong>'+esc(m.name)+'</strong> <small>'+esc(m.detail)+'</small><div class="item-meta">'+m.taken.map((at,i)=>'DOSE '+(i+1)+': '+(at?'CHECKED '+esc(stamp(at)):'NOT CHECKED')).join('<br>')+'</div></div>').join(''):'<p class="quiet">No medications listed on this day.</p>';
+    $('log-notes').innerHTML=r&&r.notes.length?r.notes.slice().sort((a,b)=>a.at.localeCompare(b.at)).map(n=>'<div class="note-row"><small>WRITTEN '+esc(stamp(n.at))+(n.edited?' · EDITED '+esc(stamp(n.edited)):'')+'</small><p>'+esc(n.text)+'</p><div class="row"><button type="button" class="btn mini" data-note-edit="'+esc(n.id)+'">EDIT</button><button type="button" class="btn mini danger" data-note-delete="'+esc(n.id)+'">DELETE</button></div></div>').join(''):'<p class="quiet">No notes for this day.</p>';
+  }
+  function goToDay(value){
+    if(!validDay(value)||value>localDay())return;
+    viewing=value;editingNote='';$('log-note-text').value='';$('log-note-save').textContent='SAVE TIMESTAMPED NOTE';renderLog();changeTab('log');
+  }
+  function shiftDay(n){const [y,m,d]=viewing.split('-').map(Number);goToDay(new Date(Date.UTC(y,m-1,d+n)).toISOString().slice(0,10));}
   function stats(){const done=state.quests.filter(q=>q.done);const xp=done.reduce((n,q)=>n+q.xp,0);return {done:done.length,xp,level:Math.floor(xp/100)+1,active:state.quests.length-done.length};}
-  function renderHeader(){const s=stats();$('header-callsign').textContent=state.profile.name.toUpperCase();document.title=state.profile.name+' • Personal Terminal (V0.9)';$('player-label').textContent='USER: '+state.profile.name.toUpperCase();$('mini-stats').textContent=`LVL ${String(s.level).padStart(2,'0')} · ${s.xp} XP · ${s.active} ACTIVE QUEST${s.active===1?'':'S'}`;}
+  function renderHeader(){const s=stats();$('header-callsign').textContent=state.profile.name.toUpperCase();document.title=state.profile.name+' • Personal Terminal (V1.0)';$('player-label').textContent='USER: '+state.profile.name.toUpperCase();$('mini-stats').textContent=`LVL ${String(s.level).padStart(2,'0')} · ${s.xp} XP · ${s.active} ACTIVE QUEST${s.active===1?'':'S'}`;}
   let activeReadout='cnd';
   function showReadout(id){
-    if(!['cnd','rad','wat','clk','eng'].includes(id))return;
+    if(!['cnd','rad','wat','med','eng'].includes(id))return;
     activeReadout=id;
     document.querySelectorAll('.readout-editor').forEach(panel=>{panel.hidden=panel.id!=='readout-panel-'+(id==='cnd'?'condition':id);});
     document.querySelectorAll('[data-readout-tab]').forEach(button=>{const selected=button.dataset.readoutTab===id;button.classList.toggle('active-readout',selected);button.setAttribute('aria-selected',String(selected));});
@@ -372,18 +473,19 @@ button.status-readout.active-readout {border-left-color:var(--bright);background
     const readouts=[
       {id:'rad',label:p.readouts[0].label||'RAD',value:p.readouts[0].value||'—'},
       {id:'wat',label:'WAT',value:Math.round(Math.min(100,p.water/p.waterGoal*100))+'%'},
-      {id:'clk',label:p.readouts[2].label||'CLK',value:p.readouts[2].value||'—'},
+      {id:'med',label:'MED',value:'—'},
       {id:'eng',label:'ENG',value:p.energy?p.energy+'/10':'—'}
     ];
     $('status-custom-readouts').innerHTML=readouts.map(r=>'<button id="readout-tab-'+r.id+'" class="status-readout" type="button" role="tab" aria-controls="readout-panel-'+r.id+'" aria-selected="false" data-readout-tab="'+r.id+'"><b>'+esc(r.label)+'</b><strong>'+esc(r.value)+'</strong></button>').join('');
     showReadout(activeReadout);
+    const count=medCount(day(localDay(),false)),b=$('readout-tab-med');if(b)b.querySelector('strong').textContent=count.all?count.done+'/'+count.all:'—';
   }
   function renderConditionControls(){
     $('condition-fields').innerHTML=Object.entries(bodyParts).map(([key,label])=>{
       const val=state.profile.limbs[key];
       return '<div class="condition-field '+(val===0?'crippled':'')+'"><label for="condition-'+key+'">'+label+'</label><input id="condition-'+key+'" data-condition="'+key+'" type="range" min="0" max="100" step="5" value="'+val+'" aria-label="'+label+' condition percent"><output id="condition-value-'+key+'">'+val+'%</output></div>';
     }).join('');
-    for(const [id,i] of [['rad',0],['clk',2]]){
+    for(const [id,i] of [['rad',0]]){
       const raw=parseFloat(state.profile.readouts[i].value);
       const val=Number.isFinite(raw)?clampInt(raw,0,100,0):0;
       $(id+'-level').value=val;$(id+'-level-display').textContent=val+'%';$(id+'-label').value=state.profile.readouts[i].label||id.toUpperCase();
@@ -407,7 +509,7 @@ button.status-readout.active-readout {border-left-color:var(--bright);background
     $('quest-list').innerHTML=list.length?list.map(q=>`<article class="item ${q.done?'completed':''}"><div class="row spread"><div class="row"><span class="pill">${esc(q.kind.toUpperCase())}</span><span class="pill">+${q.xp} XP</span></div>${q.due?`<span class="item-meta">DUE ${displayDue(q.due)}</span>`:''}</div><div class="item-title" style="margin-top:8px">${esc(q.title)}</div>${q.notes?`<div class="item-meta">${esc(q.notes)}</div>`:''}<div class="item-actions"><button class="btn mini ${q.done?'':'primary'}" data-quest-toggle="${esc(q.id)}">${q.done?'↶ REOPEN':'✓ COMPLETE'}</button><button class="btn mini danger" data-quest-delete="${esc(q.id)}">DELETE</button></div></article>`).join(''):'<div class="empty">No quests in this category. Add an objective above.</div>';
   }
   function renderStations(){const entries=presets.concat(state.stations);$('station-list').innerHTML=entries.map(st=>`<div class="station"><div><div class="item-title">${esc(st.name)}</div><div class="item-meta">${st.preset?'PRESET FREQUENCY':'CUSTOM FREQUENCY'}</div></div><div class="row"><button class="btn mini primary" data-station-play="${esc(st.id)}">▶ TUNE</button>${!st.preset?`<button class="btn mini danger" data-station-delete="${esc(st.id)}">DELETE</button>`:''}</div></div>`).join('');}
-  function render(){renderHeader();renderStats();renderInventory();renderQuests();renderStations();}
+  function render(){renderHeader();renderStats();renderMeds();renderLog();renderInventory();renderQuests();renderStations();}
   function changeTab(tab){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+tab));document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.tab===tab)));if(tab==='map'&&!mapLoaded){updateMap();mapLoaded=true;}}
   document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>changeTab(btn.dataset.tab)));
   $('profile-name').addEventListener('change',e=>{state.profile.name=e.target.value.trim()||'WANDERER';save();renderHeader();renderConditionGraphics();e.target.value=state.profile.name;});
@@ -425,17 +527,62 @@ button.status-readout.active-readout {border-left-color:var(--bright);background
     renderConditionControls();renderConditionGraphics();save();notice('All body regions restored to 100%.');
   });
   document.querySelector('.status-readouts').addEventListener('click',e=>{const b=e.target.closest('[data-readout-tab]');if(b)showReadout(b.dataset.readoutTab);});
-  for(const id of ['rad','clk']){
+  for(const id of ['rad']){
     $(id+'-level').addEventListener('input',e=>{const i=id==='rad'?0:2;const val=clampInt(e.target.value,0,100,0);state.profile.readouts[i].value=val+'%';$(id+'-level-display').textContent=val+'%';renderConditionGraphics();save();});
     $(id+'-label').addEventListener('input',e=>{const i=id==='rad'?0:2;state.profile.readouts[i].label=e.target.value.toUpperCase().slice(0,8);renderConditionGraphics();save();});
   }
   $('energy-readout').addEventListener('input',e=>{state.profile.energy=String(clampInt(e.target.value,1,10,5));$('energy').value=state.profile.energy;$('energy-readout-display').textContent=state.profile.energy+'/10';renderConditionGraphics();save();});
   $('profile-occupation').addEventListener('change',e=>{state.profile.occupation=e.target.value.trim().slice(0,100);e.target.value=state.profile.occupation;save();});
   $('energy').addEventListener('change',e=>{state.profile.energy=e.target.value;$('energy-readout').value=state.profile.energy||5;$('energy-readout-display').textContent=state.profile.energy?state.profile.energy+'/10':'Not logged';renderConditionGraphics();save();});
-  $('water-goal').addEventListener('input',e=>{state.profile.waterGoal=clampInt(e.target.value,250,10000,2000);save();renderStats();});
-  $('water-add').addEventListener('click',()=>{waterDay();state.profile.water=Math.min(100000,state.profile.water+250);save();renderStats();});
-  $('water-undo').addEventListener('click',()=>{waterDay();state.profile.water=Math.max(0,state.profile.water-250);save();renderStats();});
-  $('water-reset').addEventListener('click',()=>{state.profile.water=0;state.profile.waterDate=localDay();save();renderStats();});
+  $('water-goal').addEventListener('input',e=>{state.profile.waterGoal=clampInt(e.target.value,250,10000,2000);recordWater();save();renderStats();renderLog();});
+  $('water-add').addEventListener('click',()=>{waterDay();state.profile.water=Math.min(100000,state.profile.water+250);recordWater();save();renderStats();renderLog();});
+  $('water-undo').addEventListener('click',()=>{waterDay();state.profile.water=Math.max(0,state.profile.water-250);recordWater();save();renderStats();renderLog();});
+  $('water-reset').addEventListener('click',()=>{waterDay();state.profile.water=0;recordWater();save();renderStats();renderLog();});
+
+  $('log-prev').addEventListener('click',()=>shiftDay(-1));
+  $('log-next').addEventListener('click',()=>shiftDay(1));
+  $('log-today').addEventListener('click',()=>goToDay(localDay()));
+  $('log-date').addEventListener('change',e=>goToDay(e.target.value));
+  $('med-history').addEventListener('click',()=>goToDay(localDay()));
+  $('med-select').addEventListener('change',e=>{selectedMed=e.target.value;renderMeds();});
+  $('med-form').addEventListener('submit',e=>{
+    e.preventDefault();if(state.medications.length>=120){notice('Medication inventory limit reached');return;}
+    const name=$('med-new-name').value.trim().slice(0,100);if(!name)return;
+    const m={id:makeId(),name,detail:$('med-new-detail').value.trim().slice(0,100),qty:clampInt($('med-new-qty').value,0,100000,0),doses:clampInt($('med-new-doses').value,1,8,1),active:true};
+    state.medications.push(m);selectedMed=m.id;syncMeds();save();e.target.reset();$('med-new-qty').value=0;$('med-new-doses').value=1;renderMeds();renderLog();notice('Medication added');
+  });
+  $('med-checks').addEventListener('change',e=>{
+    if(!e.target.matches('[data-dose]'))return;
+    const m=day(localDay(),true).meds[selectedMed],i=Number(e.target.dataset.dose);
+    if(!m||!Number.isInteger(i)||i<0||i>=m.taken.length)return;
+    m.taken[i]=e.target.checked?new Date().toISOString():null;save();renderMeds();renderLog();
+  });
+  $('med-inventory').addEventListener('change',e=>{
+    const field=e.target.dataset.medField,m=state.medications.find(x=>x.id===e.target.dataset.medId);
+    if(!m||!['name','detail','qty','doses'].includes(field))return;
+    if(field==='name'){const name=e.target.value.trim().slice(0,100);if(name)m.name=name;}
+    if(field==='detail')m.detail=e.target.value.trim().slice(0,100);
+    if(field==='qty')m.qty=clampInt(e.target.value,0,100000,m.qty);
+    if(field==='doses')m.doses=clampInt(e.target.value,1,8,m.doses);
+    syncMeds();save();renderMeds();renderLog();
+  });
+  $('med-inventory').addEventListener('click',e=>{
+    const b=e.target.closest('[data-archive]');if(!b)return;const m=state.medications.find(x=>x.id===b.dataset.archive);
+    if(!m)return;if(m.active&&!confirm('Archive '+m.name+'? Existing history will remain.'))return;
+    m.active=!m.active;save();renderMeds();renderLog();
+  });
+  $('log-note-form').addEventListener('submit',e=>{
+    e.preventDefault();const value=$('log-note-text').value.trim().slice(0,3000);if(!value)return;
+    const r=day(viewing,true);if(editingNote){const n=r.notes.find(x=>x.id===editingNote);if(n){n.text=value;n.edited=new Date().toISOString();}}
+    else{if(r.notes.length>=250){notice('Daily note limit reached');return;}r.notes.push({id:makeId(),text:value,at:new Date().toISOString(),edited:''});}
+    editingNote='';$('log-note-text').value='';$('log-note-save').textContent='SAVE TIMESTAMPED NOTE';save();renderLog();notice('Note saved with timestamp');
+  });
+  $('log-notes').addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;const r=day(viewing,false);if(!r)return;
+    const id=b.dataset.noteEdit||b.dataset.noteDelete,n=r.notes.find(x=>x.id===id);if(!n)return;
+    if(b.hasAttribute('data-note-edit')){editingNote=id;$('log-note-text').value=n.text;$('log-note-save').textContent='SAVE CHANGES';$('log-note-text').focus();}
+    else{if(!confirm('Delete this note?'))return;r.notes=r.notes.filter(x=>x.id!==id);if(editingNote===id){editingNote='';$('log-note-text').value='';}save();renderLog();}
+  });
   $('special-fields').addEventListener('input',e=>{if(!e.target.dataset.special)return;const k=e.target.dataset.special;state.profile.special[k]=clampInt(e.target.value,1,10,5);$('special-value-'+k).textContent=state.profile.special[k];save();});
   $('perk-form').addEventListener('submit',e=>{e.preventDefault();const value=$('perk-name').value.trim();if(!value)return;if(state.perks.length>=80){notice('Perk limit reached.');return;}state.perks.push(value);$('perk-name').value='';save();renderStats();});
   $('perk-list').addEventListener('click',e=>{const btn=e.target.closest('[data-remove-perk]');if(!btn)return;state.perks.splice(Number(btn.dataset.removePerk),1);save();renderStats();});
@@ -456,8 +603,8 @@ button.status-readout.active-readout {border-left-color:var(--bright);background
   player.addEventListener('error',()=>{$('equalizer').classList.remove('playing');if(player.src)$('radio-feedback').textContent='Station connection failed. It may be offline or incompatible.';});
   $('backup-export').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),href=URL.createObjectURL(blob),a=document.createElement('a');a.href=href;a.download='wanderer-backup-'+localDay()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),1500);notice('Backup exported to your downloads.');});
   $('backup-import').addEventListener('click',()=>$('backup-file').click());
-  $('backup-file').addEventListener('change',async e=>{const file=e.target.files&&e.target.files[0];e.target.value='';if(!file)return;if(file.size>1024*1024){notice('Save file is too large (limit 1 MB).');return;}try{const raw=JSON.parse(await file.text());if(raw.version!==1)throw Error('This is not a version 1 save file.');const imported=normalize(raw);if(!confirm('Replace your current data with this backup? Export a backup first if needed.'))return;state=imported;save();render();notice('Save data imported successfully.');}catch(err){notice('Import failed: '+err.message);}});
-  function clock(){const d=new Date();$('clock').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});$('connection').textContent=navigator.onLine?'NETWORK LINK READY':'OFFLINE — LOCAL MODE';if(state.profile.waterDate!==localDay())renderStats();}
+  $('backup-file').addEventListener('change',async e=>{const file=e.target.files&&e.target.files[0];e.target.value='';if(!file)return;if(file.size>4*1024*1024){notice('Save file is too large (limit 4 MB).');return;}try{const raw=JSON.parse(await file.text());if(raw.version!==1)throw Error('This is not a version 1 save file.');const imported=normalize(raw);if(!confirm('Replace your current data with this backup? Export a backup first if needed.'))return;state=imported;selectedMed='';viewing=localDay();activeReadout='cnd';save();render();notice('Save data imported successfully.');}catch(err){notice('Import failed: '+err.message);}});
+  function clock(){const d=new Date();$('clock').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});$('connection').textContent=navigator.onLine?'NETWORK LINK READY':'OFFLINE — LOCAL MODE';if(state.profile.waterDate!==localDay()){renderStats();renderMeds();renderLog();}}
   $('save-status').textContent=storageOK?'LOCAL AUTOSAVE: ACTIVE':'LOCAL AUTOSAVE UNAVAILABLE — USE EXPORT SAVE';
   render();clock();setInterval(clock,60000);
 })();

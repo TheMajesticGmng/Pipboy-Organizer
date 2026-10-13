@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <meta content="#09130a" name="theme-color"/>
-<title>Wanderer • Personal Terminal (V1.4.5)</title>
+<title>Wanderer • Personal Terminal (V1.4.6)</title>
 <style>
     :root { color-scheme: dark; --bg:#070f08; --panel:#0c1a0f; --panel2:#102417; --line:#47794a; --soft:#8cbd81; --bright:#b4f7a2; --muted:#71986e; --danger:#ffb586; --dark:#071108; }
     * { box-sizing:border-box; }
@@ -218,7 +218,7 @@ button.status-readout.active-readout {border-left-color:var(--bright);background
 <body>
 <div class="shell"><div class="bezel"><main class="screen">
 <header class="mast">
-<div><div class="brand"><span id="header-callsign">WANDERER</span> <span style="font-size:.60em;color:var(--soft)">// PERSONAL TERMINAL</span></div><div class="subbrand">PERSONAL INFORMATION PROCESSOR  ·  MARK IV INSPIRED  ·  V 1.4.5</div></div>
+<div><div class="brand"><span id="header-callsign">WANDERER</span> <span style="font-size:.60em;color:var(--soft)">// PERSONAL TERMINAL</span></div><div class="subbrand">PERSONAL INFORMATION PROCESSOR  ·  MARK IV INSPIRED  ·  V 1.4.6</div></div>
 <div class="top-meta"><strong id="clock">--:--</strong><span id="connection">LOCAL MODE</span></div>
 </header>
 <nav aria-label="Primary sections" class="tabbar" role="tablist">
@@ -443,7 +443,7 @@ button.status-readout.active-readout {border-left-color:var(--bright);background
   }
   function shiftDay(n){const [y,m,d]=viewing.split('-').map(Number);goToDay(new Date(Date.UTC(y,m-1,d+n)).toISOString().slice(0,10));}
   function stats(){const done=state.quests.filter(q=>q.done);const xp=done.reduce((n,q)=>n+q.xp,0);return {done:done.length,xp,level:Math.floor(xp/100)+1,active:state.quests.length-done.length};}
-  function renderHeader(){const s=stats();$('header-callsign').textContent=state.profile.name.toUpperCase();document.title=state.profile.name+' • Personal Terminal (V1.4.5)';$('player-label').textContent='USER: '+state.profile.name.toUpperCase();$('mini-stats').textContent=`LVL ${String(s.level).padStart(2,'0')} · ${s.xp} XP · ${s.active} ACTIVE QUEST${s.active===1?'':'S'}`;}
+  function renderHeader(){const s=stats();$('header-callsign').textContent=state.profile.name.toUpperCase();document.title=state.profile.name+' • Personal Terminal (V1.4.6)';$('player-label').textContent='USER: '+state.profile.name.toUpperCase();$('mini-stats').textContent=`LVL ${String(s.level).padStart(2,'0')} · ${s.xp} XP · ${s.active} ACTIVE QUEST${s.active===1?'':'S'}`;}
   let activeReadout='cnd';
   function showReadout(id){
     if(!['cnd','rad','wat','med','eng'].includes(id))return;
@@ -627,5 +627,5 @@ button.status-readout.active-readout {border-left-color:var(--bright);background
   const radioForm = document.getElementById('station-form');
   radioForm.addEventListener('submit', () => switchSub(document.getElementById('view-radio'), 'listen'));
 })();
-</script><script src="./map-integration.js"></script><script src="./radio-upgrade.js?v=145"></script></body>
+</script><script src="./map-integration.js"></script><script src="./radio-upgrade.js?v=145"></script><script src="./radio-booster.js?v=146"></script></body>
 </html>

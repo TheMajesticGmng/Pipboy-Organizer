@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="#09130a" name="theme-color"/>
+<title>Wanderer • Personal Terminal (V0.4)</title>
+<style>
+    :root { color-scheme: dark; --bg:#070f08; --panel:#0c1a0f; --panel2:#102417; --line:#47794a; --soft:#8cbd81; --bright:#b4f7a2; --muted:#71986e; --danger:#ffb586; --dark:#071108; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:radial-gradient(ellipse at 50% -30%,#26472a 0,#0a170b 48%,#030803 100%); color:var(--bright); font: 15px/1.42 Consolas, 'Lucida Console', 'Courier New', monospace; }
+    button, input, select, textarea { font: inherit; }
+    button, a, input, select, textarea { outline-offset:3px; }
+    button { cursor:pointer; }
+    a { color:var(--bright); }
+    .shell { max-width:1180px; margin:22px auto; padding:16px; }
+    .bezel { border:3px solid #57764d; border-radius:26px; padding:12px; background:linear-gradient(135deg,#17271a,#0c150d 65%,#172618); box-shadow:0 26px 66px #000b, inset 0 0 0 3px #080f08, inset 0 0 0 7px #354b32; }
+    .screen { position:relative; isolation:isolate; overflow:hidden; border-radius:15px; border:2px solid #355f35; padding:22px 22px 18px; background:radial-gradient(ellipse at center,#15371a 0%,#0c2110 48%,#051005 100%); min-height:670px; }
+    .screen::before { content:''; position:absolute; z-index:-1; inset:0; pointer-events:none; background:repeating-linear-gradient(to bottom,transparent 0 3px,rgba(1,10,1,.24) 3px 4px); opacity:.68; }
+    .screen::after { content:''; position:absolute; z-index:-1; inset:0; box-shadow:inset 0 0 110px 20px #000b; border-radius:13px; pointer-events:none; }
+    .mast { display:flex; gap:12px; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:11px; }
+    .brand { font-weight:900; font-size:clamp(18px,3vw,27px); letter-spacing:.08em; line-height:1.1; }
+    .subbrand { color:var(--muted); font-size:10px; letter-spacing:.2em; margin-top:3px; }
+    .top-meta { text-align:right; color:var(--soft); font-size:11px; }
+    .top-meta strong { display:block; font-size:15px; }
+    .tabbar { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:4px; border-bottom:2px solid var(--line); margin-top:13px; }
+    .tab { padding:12px 2px; text-align:center; text-decoration:none; text-transform:uppercase; color:var(--soft); border:0; border-bottom:4px solid transparent; background:transparent; font-weight:900; letter-spacing:.13em; font-size:clamp(11px,2vw,16px); }
+    .tab[aria-selected=true] { color:var(--dark); background:var(--bright); text-shadow:none; border-bottom-color:var(--bright); clip-path:polygon(0 0,100% 0,100% 80%,95% 100%,5% 100%,0 80%); }
+    .tab:not([aria-selected=true]):hover { color:var(--bright); background:#234a27; }
+    .status-strip { display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px; margin:10px 0 17px; font-size:11px; color:var(--soft); }
+    .view { display:none; }
+    .view.active { display:block; }
+    h1, h2, h3, p { margin-top:0; }
+    h1 { font-size:clamp(19px,2.4vw,26px); letter-spacing:.08em; margin:0 0 12px; }
+    h2 { font-size:16px; text-transform:uppercase; letter-spacing:.09em; padding-bottom:7px; border-bottom:1px solid var(--line); margin:0 0 13px; }
+    h3 { font-size:13px; text-transform:uppercase; letter-spacing:.1em; margin:0 0 9px; }
+    p, small { color:var(--soft); }
+    .grid2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .stat-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:16px; }
+    .panel { min-width:0; background:rgba(3,17,6,.46); border:1px solid #487849; padding:16px; border-radius:4px; }
+    .info { padding:10px 12px; border-left:3px solid var(--line); background:#17301a8c; color:var(--soft); margin:12px 0; font-size:12px; }
+    .row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .spread { justify-content:space-between; }
+    .stack { display:flex; flex-direction:column; gap:11px; }
+    label { display:block; font-size:12px; color:var(--soft); margin-bottom:5px; }
+    input, select, textarea { color:var(--bright); background:#061409; border:1px solid #588e54; border-radius:2px; padding:9px 11px; min-height:42px; min-width:0; width:100%; }
+    textarea { resize:vertical; min-height:72px; }
+    input[type=range] { padding:0; min-height:25px; accent-color:var(--bright); }
+    input[type=checkbox] { width:19px; height:19px; min-height:0; accent-color:var(--bright); }
+    input::placeholder, textarea::placeholder { color:#6e906d; }
+    input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible { outline:2px solid #e4ffe0; }
+    .field { min-width:0; flex:1; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:4px; min-height:42px; padding:9px 13px; background:#1f4525; border:1px solid #79bb71; color:var(--bright); text-transform:uppercase; font-size:12px; font-weight:bold; letter-spacing:.04em; text-decoration:none; border-radius:3px; }
+    .btn:hover { background:#326a37; }
+    .btn.primary { background:var(--bright); color:#09190a; }
+    .btn.primary:hover { background:#defed1; }
+    .btn.danger { border-color:#bd8067; color:#ffcfb0; background:#3b241a; }
+    .btn.mini { min-height:33px; padding:5px 9px; font-size:11px; }
+    .btn:disabled { opacity:.55; cursor:not-allowed; }
+    .metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+    .metric { text-align:center; border:1px solid var(--line); padding:11px 6px; background:#142e18; }
+    .metric strong { display:block; color:var(--bright); font-size:23px; line-height:1.15; }
+    .metric span { display:block; color:var(--soft); font-size:10px; margin-top:6px; letter-spacing:.08em; }
+    .hero-figure { min-height:210px; display:grid; place-items:center; }
+    .hero-figure svg { width:min(100%,280px); height:220px; filter:drop-shadow(0 0 8px #8abf8439); }
+    .progress { height:12px; margin:9px 0; border:1px solid var(--bright); background:#0b1b0c; overflow:hidden; }
+    .progress > span { display:block; height:100%; background:repeating-linear-gradient(90deg,#7dbb76 0,#7dbb76 11px,#b3f5a3 11px,#b3f5a3 18px); width:0; max-width:100%; }
+    .special-item { display:grid; grid-template-columns:125px 1fr 24px; gap:11px; align-items:center; margin:8px 0; }
+    .special-item label { margin:0; font-size:12px; }
+    .special-item output { text-align:right; }
+    .pill { display:inline-block; border:1px solid var(--line); padding:3px 7px; font-size:10px; letter-spacing:.06em; color:var(--soft); white-space:nowrap; }
+    .item { border-bottom:1px dashed #3b663d; padding:13px 0; }
+    .item:last-child { border-bottom:0; }
+    .item-title { font-weight:800; color:var(--bright); font-size:15px; margin-bottom:4px; overflow-wrap:anywhere; }
+    .item-meta { color:var(--soft); font-size:11px; overflow-wrap:anywhere; }
+    .completed .item-title { text-decoration:line-through; opacity:.55; }
+    .item-actions { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:8px; }
+    .filters { display:flex; flex-wrap:wrap; gap:6px; padding:8px 0 12px; }
+    .filters button[aria-pressed=true] { background:var(--bright); color:var(--dark); }
+    .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:11px; }
+    .full { grid-column:1/-1; }
+    .quiet { color:var(--muted); font-size:12px; }
+    .empty { text-align:center; padding:26px 10px; color:var(--muted); border:1px dashed var(--line); }
+    .inventory-count { padding:9px 0; font-size:12px; color:var(--soft); }
+    .map-frame { width:100%; height:340px; border:1px solid #67a361; background:#07120a; filter:grayscale(1) sepia(.7) hue-rotate(55deg) saturate(2.4) contrast(1.15) brightness(.91); }
+    .map-outer { background:#07120a; padding:8px; border:1px solid var(--line); }
+    .map-note { font-size:11px; margin-top:8px; color:var(--soft); }
+    .station { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; border-bottom:1px dashed var(--line); padding:12px 0; }
+    .station:last-child { border:0; }
+    audio { display:block; width:100%; margin:11px 0; filter:grayscale(1) sepia(.4) hue-rotate(45deg); }
+    .ticker { display:flex; gap:3px; align-items:end; height:70px; padding:10px 0; }
+    .ticker span { width:11px; height:22px; display:inline-block; background:var(--bright); opacity:.4; }
+    .ticker.playing span { animation:wave 950ms ease-in-out infinite alternate; }
+    .ticker.playing span:nth-child(2n) { animation-delay:-.35s; }
+    .ticker.playing span:nth-child(3n) { animation-delay:-.6s; }
+    @keyframes wave { from {height:8px;opacity:.4;} to {height:57px;opacity:1;} }
+    .footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:9px; margin-top:19px; padding-top:13px; border-top:1px solid var(--line); color:var(--muted); font-size:11px; }
+    .backup-row { display:flex; flex-wrap:wrap; gap:7px; align-items:center; }
+    #notice { min-height:20px; color:var(--bright); }
+    @media (max-width:760px) { .shell {margin:0;padding:0} .bezel {border-radius:0;padding:6px} .screen {border-radius:10px; min-height:100vh; padding:15px 11px;} .grid2,.stat-grid {grid-template-columns:1fr;} .top-meta {font-size:10px} .tab {letter-spacing:.03em} .special-item {grid-template-columns:100px 1fr 19px;} }
+    @media (max-width:460px) { .form-grid {grid-template-columns:1fr;} .full {grid-column:auto;} .metrics {grid-template-columns:repeat(3,1fr);} .metric strong {font-size:19px;} .mast {align-items:flex-start;} .top-meta {white-space:nowrap;} .btn {padding:8px 10px;} .map-frame {height:285px;} }
+    @media (prefers-reduced-motion:reduce) { .ticker.playing span {animation:none;} }
+  </style>
+<style>
+/* V0.2 – Fallout 4-inspired green CRT treatment and secondary menus. */
+:root { --bg:#020903; --panel:#071408; --panel2:#0a1d0e; --line:#355d32; --soft:#8dbb75; --bright:#a8ed88; --muted:#6a9662; --danger:#facda5; --dark:#09160a; }
+body { background:#020703; color:var(--bright); font-family:Consolas,'Lucida Console','Courier New',monospace; }
+.shell {max-width:1190px;margin:12px auto;padding:6px;}
+.bezel {border:5px ridge #556950;border-radius:26px;padding:15px;background:linear-gradient(150deg,#283027,#101b11 25%,#101b11 85%,#273024);box-shadow:0 13px 30px #000c,inset 0 0 0 4px #060d07,inset 0 0 0 8px #344834;}
+.screen {border-radius:19px;border:4px solid #1e2e1c;padding:18px 32px 19px;min-height:660px;background:radial-gradient(ellipse at center,#102514 0,#09180c 64%,#030b05 100%);box-shadow:inset 0 0 35px #0009;}
+.screen::before {background:repeating-linear-gradient(to bottom,transparent 0 2px,rgba(0,0,0,.34) 2px 3px);opacity:.55;}
+.screen::after {box-shadow:inset 0 0 90px 9px #000a;}
+.mast {border-bottom:0;padding:0 0 10px;}
+.brand {font-size:clamp(19px,3.1vw,28px);letter-spacing:.06em;}
+.subbrand {font-size:10px;letter-spacing:.12em;}
+.tabbar {position:relative;border-bottom:3px solid #60885c;margin-top:10px;gap:0;}
+.tab {padding:11px 4px 12px;font-weight:900;letter-spacing:.07em;color:#a2cb86;font-size:clamp(15px,2vw,22px);}
+.tab[aria-selected=true] {color:#0b1b0d;background:var(--bright);border-bottom-color:var(--bright);clip-path:polygon(0 0,100% 0,100% 82%,96% 100%,4% 100%,0 82%);}
+.tab:not([aria-selected=true]):hover {background:#1d3b21;}
+.status-strip {margin:10px 0 7px;padding:0 2px;font-size:12px;letter-spacing:.04em;}
+.view>h1 {font-size:0;width:0;height:0;position:absolute;overflow:hidden;}
+.subnav {display:flex;gap:2px;align-items:center;flex-wrap:wrap;min-height:43px;margin:1px 0 17px;border-bottom:1px solid #294f2a;}
+.subtab {border:0;border-bottom:3px solid transparent;background:transparent;color:#93bb78;font-size:clamp(12px,1.6vw,15px);font-weight:bold;padding:9px 18px 10px;letter-spacing:.08em;}
+.subtab[aria-pressed=true] {color:var(--bright);border-bottom-color:var(--bright);background:#1b35202b;}
+.subtab:focus-visible {outline:2px solid white;}
+.subview {display:none;}
+.subview.active {display:block;}
+.panel {background:rgba(0,7,0,.17);border:1px solid #42683b;box-shadow:inset 0 0 18px #193b181a;padding:18px;border-radius:0;}
+h2 {font-size:17px;color:var(--bright);border-bottom:1px solid #3c6939;}
+.hero-figure {min-height:250px;}
+.hero-figure svg {height:250px;}
+.btn {border-radius:0;border:1px solid #568d50;background:#142c16;}
+.btn.primary {background:var(--bright);border-color:var(--bright);}
+.btn:hover {background:#2f5a30;}
+.btn.primary:hover {background:#d1f6b5;}
+input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
+.metric {background:transparent;border:1px solid #355e33;}
+.metric strong {font-size:25px;}
+.pill {border-color:#47773f;}
+.filters {padding:7px 0 13px;}
+.filters .btn[aria-pressed=true] {background:var(--bright);color:var(--dark);}
+.footer {border-top:2px solid #4b7845;}
+#view-data [data-subview="quests"]>.panel,#view-inv [data-subview="items"]>.panel {min-height:390px;}
+#view-radio [data-subview="listen"]>.panel + .panel {margin-top:15px;}
+#view-map>h1 {position:static;width:auto;height:auto;font-size:18px;margin-top:18px;}
+@media(max-width:760px){.shell{margin:0;padding:0}.bezel{border-radius:0;padding:6px;border-width:3px}.screen{border-radius:8px;min-height:100vh;padding:14px 11px}.tab{font-size:clamp(13px,3vw,20px)}.subtab{padding:9px 10px}.hero-figure{min-height:190px}.hero-figure svg{height:190px}.brand{font-size:20px}.subbrand{font-size:8px}}
+@media(max-width:370px){.top-meta{font-size:8px}.top-meta strong{font-size:12px}.tab{letter-spacing:0}.subtab{font-size:12px;padding:9px 8px}.status-strip{font-size:10px}.brand{font-size:17px}}
+
+/* V0.3 - Vault Boy-style figure embedded for standalone offline use. */
+.hero-figure { min-height:250px; overflow:hidden; }
+.hero-figure .vault-boy-art { display:block; max-width:min(100%,365px); width:100%; height:250px; object-fit:contain; filter:drop-shadow(0 0 9px #a3ed8a33); }
+@media(max-width:760px){.hero-figure { min-height:195px; }.hero-figure .vault-boy-art{height:195px;}}
+
+/* V0.4 – authentic game-style, independently adjustable body readout. */
+.stat-grid {grid-template-columns:1.2fr .8fr;align-items:start;}
+.stat-side {min-width:0;display:flex;flex-direction:column;}
+.status-display {display:grid;grid-template-columns:78px minmax(0,1fr);gap:8px;align-items:start;margin:10px 0 8px;}
+.status-readouts {padding-top:33px;display:flex;flex-direction:column;gap:11px;min-width:0;}
+.status-readout {display:grid;gap:1px;border-left:2px solid transparent;padding:1px 3px;font-size:13px;letter-spacing:.04em;}
+.status-readout.top-readout {border-left-color:var(--bright);background:#1f4824;}
+.status-readout b {font-size:14px;font-weight:900;}
+.status-readout strong {font-size:12px;color:var(--soft);font-weight:500;overflow-wrap:anywhere;}
+.body-display {min-width:0;text-align:center;}
+.condition-topline {display:flex;justify-content:space-around;gap:8px;flex-wrap:wrap;border-top:2px solid var(--bright);border-bottom:1px solid var(--line);padding:4px 0;margin-bottom:2px;font-size:12px;}
+.body-display .hero-figure {min-height:0;padding:0;overflow:visible;display:block;}
+.body-display .hero-figure svg {display:block;width:100%;height:auto;max-height:328px;aspect-ratio:580/450;filter:drop-shadow(0 0 3px #91ef925b);color:var(--bright);}
+.body-region {transition:opacity .18s;}
+.body-region.crippled {stroke-dasharray:9 9;opacity:.87;}
+.body-meters .meter-track {fill:#0a210e;stroke:var(--bright);}
+.body-meters .meter-fill {fill:var(--bright);stroke:none;}
+.body-meters g.crippled .meter-track {stroke-dasharray:5 3;}
+.body-flag-text {fill:var(--bright);stroke:none;font-size:13px;}
+.character-line {font-size:clamp(12px,1.5vw,17px);font-weight:bold;margin:3px 0;overflow-wrap:anywhere;}
+.body-alert {font-size:11px;letter-spacing:.05em;color:var(--soft);margin-bottom:8px;min-height:16px;}
+.condition-fields {display:grid;gap:9px;margin:12px 0;}
+.condition-field {display:grid;grid-template-columns:125px minmax(0,1fr) 42px;gap:8px;align-items:center;}
+.condition-field label {margin:0;color:var(--bright);font-size:11px;}
+.condition-field output {text-align:right;font-size:12px;}
+.condition-field.crippled output {color:#ffbf9c;}
+.readout-form-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:9px;}
+.readout-setting {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:5px;}
+.readout-setting label {grid-column:1 / -1;}
+.readout-setting input {font-size:13px;padding:7px;}
+@media(max-width:760px){.stat-grid{grid-template-columns:1fr}}
+@media(max-width:550px){.status-display{grid-template-columns:65px minmax(0,1fr);gap:4px}.status-readouts{gap:7px;padding-top:32px}.status-readout{font-size:11px;padding:1px}.status-readout b{font-size:12px}.status-readout strong{font-size:10px}.condition-topline{font-size:10px;gap:2px}.condition-field{grid-template-columns:104px minmax(0,1fr) 36px;gap:6px}.readout-form-grid{gap:7px}}
+@media(max-width:380px){.readout-form-grid{grid-template-columns:1fr}.body-flag-text{font-size:10px}}
+</style></head>
+<body>
+<div class="shell"><div class="bezel"><main class="screen">
+<header class="mast">
+<div><div class="brand">WANDERER <span style="font-size:.60em;color:var(--soft)">// PERSONAL TERMINAL</span></div><div class="subbrand">PERSONAL INFORMATION PROCESSOR  ·  MARK IV INSPIRED  ·  V 0.4</div></div>
+<div class="top-meta"><strong id="clock">--:--</strong><span id="connection">LOCAL MODE</span></div>
+</header>
+<nav aria-label="Primary sections" class="tabbar" role="tablist">
+<button aria-controls="view-stat" aria-selected="true" class="tab" data-tab="stat" id="tab-stat" role="tab">STAT</button>
+<button aria-controls="view-inv" aria-selected="false" class="tab" data-tab="inv" id="tab-inv" role="tab">INV</button>
+<button aria-controls="view-data" aria-selected="false" class="tab" data-tab="data" id="tab-data" role="tab">DATA</button>
+<button aria-controls="view-map" aria-selected="false" class="tab" data-tab="map" id="tab-map" role="tab">MAP</button>
+<button aria-controls="view-radio" aria-selected="false" class="tab" data-tab="radio" id="tab-radio" role="tab">RADIO</button>
+</nav>
+<div class="status-strip"><span id="player-label">USER: WANDERER</span><span id="mini-stats">LVL 01 · 000 XP · 0 ACTIVE QUESTS</span></div>
+<section aria-labelledby="tab-stat" class="view active" id="view-stat" role="tabpanel">
+<h1>PERSONNEL STATUS</h1><nav aria-label="Secondary sections" class="subnav"><button aria-pressed="false" class="subtab" data-switch="status" type="button">STATUS</button><button aria-pressed="false" class="subtab" data-switch="special" type="button">S.P.E.C.I.A.L.</button><button aria-pressed="false" class="subtab" data-switch="perks" type="button">PERKS</button></nav>
+
+<div class="subview active" data-subview="status"><div class="stat-grid"><div class="panel">
+<div class="row spread"><h2 style="border:0;margin:0">STATUS REPORT</h2><span class="pill">SELF-REPORTED</span></div>
+<div class="status-display">
+  <div class="status-readouts" aria-label="Condition categories">
+    <div class="status-readout top-readout"><b>CND</b><strong id="status-cond-number">100%</strong></div>
+    <div id="status-custom-readouts"><div class="status-readout"><b>RAD</b><strong>—</strong></div><div class="status-readout"><b>EFF</b><strong>—</strong></div><div class="status-readout"><b>CLK</b><strong>—</strong></div><div class="status-readout"><b>ENG</b><strong>—</strong></div></div>
+  </div>
+  <div class="body-display">
+    <div class="condition-topline"><span>LVL <b id="report-level">01</b></span><span>CND <b id="report-health">100/100</b></span><span>XP <b id="report-xp">0</b></span></div>
+    <div class="hero-figure">
+      <svg id="vault-body" viewBox="0 0 580 450" role="img" aria-label="Illustrated character with editable condition of head, chest, arms and legs">
+        <defs><filter id="crt-halo" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.1"/></filter></defs>
+        <g class="body-lines" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+          <g id="shape-chest" class="body-region">
+            <path d="M253 166 Q264 183 264 203 L246 281 Q252 297 289 299 Q331 297 337 280 L314 203 Q318 179 327 163"/>
+            <path d="M263 207 Q287 215 318 207" stroke-width="2" opacity=".5"/>
+          </g>
+          <g id="shape-head" class="body-region">
+            <path d="M255 103 Q247 86 264 73 Q255 53 274 46 Q289 38 303 42 Q318 32 332 45 Q359 52 354 75 Q366 91 360 117 Q362 148 341 166 Q291 184 264 153 Q249 131 255 103 Z"/>
+            <path d="M260 80 Q272 65 286 72 Q297 59 313 67 Q334 56 348 75" stroke-width="3"/>
+          </g>
+          <g id="shape-leftArm" class="body-region">
+            <path d="M255 171 Q227 184 199 185 Q159 186 121 169 Q113 156 103 157 Q99 161 111 171 L84 162 Q72 160 76 169 L97 178 Q74 170 71 178 Q71 183 95 189 Q70 181 73 189 Q78 196 112 199 Q154 218 197 212 L250 210"/>
+          </g>
+          <g id="shape-rightArm" class="body-region">
+            <path d="M327 170 Q353 183 380 185 Q420 186 461 168 Q466 158 479 157 Q485 160 469 173 L497 161 Q511 161 504 172 L486 179 Q507 170 510 181 Q509 187 482 191 Q508 183 508 193 Q502 200 468 200 Q426 218 385 213 L319 210"/>
+          </g>
+          <g id="shape-leftLeg" class="body-region">
+            <path d="M249 280 Q234 310 214 342 L188 395 Q167 394 160 408 Q158 415 183 421 Q206 429 224 417 L289 321"/>
+          </g>
+          <g id="shape-rightLeg" class="body-region">
+            <path d="M332 281 Q352 313 374 350 L398 396 Q422 397 425 409 Q428 418 403 423 Q382 427 363 409 L289 321"/>
+          </g>
+          <g id="face-smile" class="face-expression">
+            <path d="M273 107 q9 -9 18 1 M316 108 q10 -11 18 0" stroke-width="3"/><path d="M283 116 v4 M328 116 v4" stroke-width="5"/><path d="M307 112 l-8 17 q-2 5 9 4" stroke-width="3"/><path d="M283 140 Q307 159 329 138 Q303 146 283 140 Z" stroke-width="2.5"/><path d="M293 149 q15 5 26 -2" stroke-width="2"/>
+          </g>
+          <g id="face-worried" class="face-expression" style="display:none">
+            <path d="M272 110 l19 -8 M316 102 l19 8" stroke-width="3"/><path d="M284 117 v4 M326 117 v4" stroke-width="5"/><path d="M305 112 l-8 19 q0 5 11 4" stroke-width="3"/><path d="M287 148 Q306 141 325 147" stroke-width="3"/>
+          </g>
+          <g id="face-sad" class="face-expression" style="display:none">
+            <path d="M270 110 l19 -11 M314 99 l20 11" stroke-width="3"/><path d="M282 118 l4 4 M329 118 l-4 4" stroke-width="4"/><path d="M303 114 l-9 18 q0 4 11 3" stroke-width="3"/><path d="M286 155 Q307 131 330 155" stroke-width="4"/><path d="M273 129 q-4 8 0 14" stroke-width="2"/>
+          </g>
+        </g>
+        <g class="body-meters" stroke="currentColor" stroke-width="2">
+          <g data-meter="head"><rect class="meter-track" x="253" y="15" width="71" height="13"/><rect class="meter-fill" id="meter-fill-head" x="255" y="17" width="67" height="9"/></g>
+          <g data-meter="leftArm"><rect class="meter-track" x="43" y="124" width="91" height="13"/><rect class="meter-fill" id="meter-fill-leftArm" x="45" y="126" width="87" height="9"/></g>
+          <g data-meter="rightArm"><rect class="meter-track" x="445" y="124" width="91" height="13"/><rect class="meter-fill" id="meter-fill-rightArm" x="447" y="126" width="87" height="9"/></g>
+          <g data-meter="chest"><rect class="meter-track" x="255" y="218" width="76" height="13"/><rect class="meter-fill" id="meter-fill-chest" x="257" y="220" width="72" height="9"/></g>
+          <g data-meter="leftLeg"><rect class="meter-track" x="43" y="353" width="91" height="13"/><rect class="meter-fill" id="meter-fill-leftLeg" x="45" y="355" width="87" height="9"/></g>
+          <g data-meter="rightLeg"><rect class="meter-track" x="445" y="353" width="91" height="13"/><rect class="meter-fill" id="meter-fill-rightLeg" x="447" y="355" width="87" height="9"/></g>
+        </g>
+        <g class="body-flag-text" font-size="17" font-family="Consolas, monospace" font-weight="bold" text-anchor="middle">
+          <text id="flag-head" x="290" y="10"></text><text id="flag-leftArm" x="93" y="113"></text><text id="flag-rightArm" x="490" y="113"></text><text id="flag-chest" x="292" y="212"></text><text id="flag-leftLeg" x="89" y="342"></text><text id="flag-rightLeg" x="488" y="342"></text>
+        </g>
+      </svg>
+    </div>
+    <div class="character-line"><span id="report-callsign">WANDERER</span> · Level <span id="report-name-level">1</span></div>
+    <div class="body-alert" id="body-alert" aria-live="polite">ALL SYSTEMS NORMAL</div>
+  </div>
+</div>
+<div class="metrics"><div class="metric"><strong id="level">01</strong><span>LEVEL</span></div><div class="metric"><strong id="xp">0</strong><span>TOTAL XP</span></div><div class="metric"><strong id="done-count">0</strong><span>QUESTS DONE</span></div></div>
+<div style="margin-top:17px"><div class="row spread"><strong>HYDRATION LOG</strong><small id="water-display">0 / 2,000 mL</small></div><div aria-label="Hydration toward daily goal" class="progress"><span id="water-progress"></span></div><div class="row"><button class="btn mini" id="water-add">+ 250 mL</button><button class="btn mini" id="water-undo">− 250 mL</button><button class="btn mini" id="water-reset">RESET TODAY</button></div><p class="quiet" style="margin:9px 0 0">Tracks water you log today, not measured hydration. Resets on a new day.</p></div>
+</div><div class="stat-side"><div class="panel"><h2>PROFILE</h2><label for="profile-name">Callsign / character name</label><input autocomplete="off" id="profile-name" maxlength="45"/><div class="form-grid" style="margin-top:12px"><div><label for="water-goal">Daily water goal (mL)</label><input id="water-goal" max="10000" min="250" step="250" type="number"/></div><div><label for="energy">Energy rating (1–10)</label><select id="energy"><option value="">Not logged</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div></div><p class="quiet" style="margin:9px 0 0">Changes are saved on this computer automatically.</p></div><div class="panel" style="margin-top:16px"><h2>BODY CONDITION · MANUAL INPUT</h2><p class="quiet">Set a condition from 0 to 100 for each region. At 0 the outline becomes dotted, marked CRIPPLED, and the expression changes. These are your own game-style ratings, not medical measurements.</p><div id="condition-fields" class="condition-fields"></div><button class="btn mini" type="button" id="condition-restore">RESET ALL TO 100</button></div>
+<div class="panel" style="margin-top:16px"><h2>CUSTOM READOUTS</h2><p class="quiet">Rename RAD, EFF, CLK and ENG, and enter your own values. None of these come from a sensor.</p><div id="custom-readout-forms" class="readout-form-grid"></div></div></div></div></div><div class="subview" data-subview="special"><div class="panel"><h2>S.P.E.C.I.A.L. · SELF-RATINGS</h2><div id="special-fields"></div><p class="quiet" style="margin:7px 0 0">Just a game-style self-assessment, not a medical or personality test.</p></div></div><div class="subview" data-subview="perks"><div class="panel"><h2>PERKS</h2><div id="perk-list"></div><form class="row" id="perk-form" style="margin-top:10px"><div class="field"><label for="perk-name">Add a custom perk</label><input id="perk-name" maxlength="60" placeholder="e.g. Night Owl" required=""/></div><button class="btn" style="align-self:end" type="submit">ADD</button></form></div></div></section>
+<section aria-labelledby="tab-inv" class="view" id="view-inv" role="tabpanel">
+<h1>PERSONAL INVENTORY</h1><nav aria-label="Secondary sections" class="subnav"><button aria-pressed="false" class="subtab" data-switch="items" type="button">ITEMS</button><button aria-pressed="false" class="subtab" data-switch="add" type="button">ADD ITEM</button><button aria-pressed="false" class="subtab" data-switch="pack" type="button">PACK</button></nav>
+
+
+<div class="subview active" data-subview="items"><div class="panel" style="margin-top:16px"><div class="row spread"><h2 style="margin:0;border:0">INVENTORY DATABASE</h2><div style="width:min(260px,100%)"><label for="inv-search">Search items</label><input autocomplete="off" id="inv-search" placeholder="Search name / location"/></div></div><div class="inventory-count" id="inv-summary"></div><div id="inv-list"></div></div></div><div class="subview" data-subview="add"><div class="panel"><h2>ADD INVENTORY ITEM</h2><form class="form-grid" id="inv-form"><div class="full"><label for="inv-name">Item name</label><input id="inv-name" maxlength="100" placeholder="e.g. Flashlight" required=""/></div><div><label for="inv-category">Category</label><select id="inv-category"><option>Everyday carry</option><option>Equipment</option><option>Magic props</option><option>Collectibles</option><option>Other</option></select></div><div><label for="inv-quantity">Quantity</label><input id="inv-quantity" max="99999" min="1" required="" type="number" value="1"/></div><div class="full"><label for="inv-location">Where is it?</label><input id="inv-location" maxlength="100" placeholder="e.g. Backpack / workshop"/></div><div class="full"><button class="btn primary" type="submit">+ ADD ITEM</button></div></form></div></div><div class="subview" data-subview="pack"><div class="panel"><h2>PACK SUMMARY</h2><div class="metrics"><div class="metric"><strong id="inv-total">0</strong><span>TOTAL UNITS</span></div><div class="metric"><strong id="inv-types">0</strong><span>ITEM TYPES</span></div><div class="metric"><strong id="inv-categories">0</strong><span>CATEGORIES</span></div></div><div class="info">Use this like a real-world inventory database: tools, magic equipment, everyday-carry items, or anything else you want to find later.</div></div></div></section>
+<section aria-labelledby="tab-data" class="view" id="view-data" role="tabpanel">
+<h1>QUEST DATA</h1><nav aria-label="Secondary sections" class="subnav"><button aria-pressed="false" class="subtab" data-switch="quests" type="button">QUESTS</button><button aria-pressed="false" class="subtab" data-switch="new" type="button">NEW QUEST</button><button aria-pressed="false" class="subtab" data-switch="overview" type="button">OVERVIEW</button></nav>
+
+
+<div class="subview active" data-subview="quests"><div class="panel" style="margin-top:16px"><h2>AVAILABLE OBJECTIVES</h2><div aria-label="Quest filters" class="filters" id="quest-filters"><button aria-pressed="true" class="btn mini" data-filter="active" type="button">ACTIVE</button><button aria-pressed="false" class="btn mini" data-filter="main" type="button">MAIN</button><button aria-pressed="false" class="btn mini" data-filter="side" type="button">SIDE</button><button aria-pressed="false" class="btn mini" data-filter="misc" type="button">MISC</button><button aria-pressed="false" class="btn mini" data-filter="done" type="button">COMPLETED</button><button aria-pressed="false" class="btn mini" data-filter="all" type="button">ALL</button></div><div id="quest-list"></div></div></div><div class="subview" data-subview="new"><div class="panel"><h2>NEW QUEST</h2><form class="form-grid" id="quest-form"><div class="full"><label for="quest-title">Objective</label><input id="quest-title" maxlength="130" placeholder="What needs to be done?" required=""/></div><div><label for="quest-kind">Quest type</label><select id="quest-kind"><option value="main">MAIN QUEST</option><option value="side">SIDE QUEST</option><option value="misc">MISC</option></select></div><div><label for="quest-xp">XP reward</label><input id="quest-xp" max="1000" min="0" required="" type="number" value="25"/></div><div><label for="quest-due">Due date (optional)</label><input id="quest-due" type="date"/></div><div><label for="quest-notes">Notes (optional)</label><input id="quest-notes" maxlength="180" placeholder="Next step or detail"/></div><div class="full"><button class="btn primary" type="submit">+ ACCEPT QUEST</button></div></form></div></div><div class="subview" data-subview="overview"><div class="panel"><h2>QUEST LOG</h2><div class="metrics"><div class="metric"><strong id="quest-active">0</strong><span>ACTIVE</span></div><div class="metric"><strong id="quest-finished">0</strong><span>COMPLETE</span></div><div class="metric"><strong id="quest-potential">0</strong><span>XP AVAILABLE</span></div></div><div class="info">Organize your real life like a role-playing game. Completing an objective earns XP and updates your level automatically.</div></div></div></section>
+<section aria-labelledby="tab-map" class="view" id="view-map" role="tabpanel">
+<h1>WORLD MAP</h1><div class="panel"><div class="row spread"><div><h2 style="border:0;margin:0">OPENSTREETMAP FEED</h2><div class="quiet" id="map-place">Default preview: Chicago area · not your location</div></div><button class="btn primary" id="find-me">⌖ CENTER ON ME</button></div>
+<div class="map-outer" style="margin-top:12px"><iframe allow="geolocation" class="map-frame" id="map-iframe" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="Interactive map from OpenStreetMap"></iframe></div>
+<div class="map-note">© <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer" target="_blank">OpenStreetMap contributors</a> · Online connection required · <a href="https://www.openstreetmap.org/#map=11/41.8781/-87.6298" id="map-open" rel="noopener noreferrer" target="_blank">Open larger map</a></div>
+<div class="info" id="map-feedback">This is a real interactive street map with a green visual treatment. Location is requested only when you press Center on Me. It does not currently show live traffic or nearby business alerts.</div>
+</div>
+</section>
+<section aria-labelledby="tab-radio" class="view" id="view-radio" role="tabpanel">
+<h1>RADIO FREQUENCIES</h1><nav aria-label="Secondary sections" class="subnav"><button aria-pressed="false" class="subtab" data-switch="listen" type="button">LISTEN</button><button aria-pressed="false" class="subtab" data-switch="add" type="button">ADD FREQUENCY</button></nav>
+<div class="subview active" data-subview="listen"><div class="panel"><h2>NOW PLAYING</h2><div aria-hidden="true" class="ticker" id="equalizer"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><strong id="radio-current">NO FREQUENCY TUNED</strong><audio controls="" id="radio-player" preload="none">Your browser does not support HTML audio.</audio><div class="row"><button class="btn mini" id="radio-stop">■ STOP</button><span class="quiet" id="radio-feedback">Select a station to begin.</span></div><div class="info">Online MP3 audio streams play here when supported by your browser. Other services, such as Spotify or YouTube, generally need their own web player.</div></div><div class="panel" style="margin-top:16px"><h2>PRESET FREQUENCIES</h2><div id="station-list"></div><div class="map-note">Sample streams courtesy of <a href="https://somafm.com/" rel="noopener noreferrer" target="_blank">SomaFM</a>, for personal listening. Availability and usage terms are controlled by the station.</div></div></div><div class="subview" data-subview="add"><div class="panel"><h2>SAVE A STATION</h2><form class="stack" id="station-form"><div><label for="station-name">Station name</label><input id="station-name" maxlength="90" placeholder="My favorite station" required=""/></div><div><label for="station-url">Direct internet audio URL (HTTPS)</label><input id="station-url" placeholder="https://.../stream.mp3" required="" type="url"/></div><div><button class="btn primary" type="submit">+ SAVE FREQUENCY</button></div></form><p class="quiet" style="margin:12px 0 0">Use a direct MP3 or browser-compatible stream URL, not an ordinary playlist or music-service page.</p></div></div></section>
+<footer class="footer"><div><div id="save-status">LOCAL AUTOSAVE: CHECKING…</div><div style="margin-top:5px">Save backups regularly. Local browser data can be cleared.</div><div aria-live="polite" id="notice" role="status"></div></div><div class="backup-row"><button class="btn mini" id="backup-export">↓ EXPORT SAVE</button><button class="btn mini" id="backup-import">↑ IMPORT SAVE</button><input accept=".json,application/json" hidden="" id="backup-file" type="file"/></div></footer>
+</main></div></div>
+<script>
+(function () {
+  'use strict';
+  const KEY = 'wanderer-personal-terminal-v1';
+  const $ = id => document.getElementById(id);
+  const bodyParts = {head:'HEAD',chest:'TORSO',leftArm:'LEFT ARM',rightArm:'RIGHT ARM',leftLeg:'LEFT LEG',rightLeg:'RIGHT LEG'};
+  const defaultReadouts = () => ['RAD','EFF','CLK','ENG'].map(label=>({label,value:'—'}));
+  const labels = {strength:'Strength',perception:'Perception',endurance:'Endurance',charisma:'Charisma',intelligence:'Intelligence',agility:'Agility',luck:'Luck'};
+  const presets = [
+    {id:'preset-groove',name:'GROOVE SALAD · DOWNTEMPO',url:'https://ice5.somafm.com/groovesalad-128-mp3',preset:true},
+    {id:'preset-illinois',name:'ILLINOIS STREET LOUNGE · VINTAGE',url:'https://ice5.somafm.com/illstreet-128-mp3',preset:true}
+  ];
+  function fresh() { return {version:1, profile:{name:'WANDERER',water:0,waterDate:localDay(),waterGoal:2000,energy:'',limbs:{head:100,chest:100,leftArm:100,rightArm:100,leftLeg:100,rightLeg:100},readouts:defaultReadouts(),special:{strength:5,perception:5,endurance:5,charisma:5,intelligence:5,agility:5,luck:5}}, perks:[],inventory:[],quests:[],stations:[]}; }
+  function localDay() { const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'); }
+  function esc(x) { return String(x ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function clampInt(x,min,max,fallback) {const n=Number(x);return Number.isFinite(n)?Math.min(max,Math.max(min,Math.round(n))):fallback;}
+  function normalize(raw) {
+    if(!raw || typeof raw!=='object' || Array.isArray(raw)) throw Error('Not a compatible save file.');
+    const a=fresh(); const p=raw.profile && typeof raw.profile==='object'?raw.profile:{};
+    a.profile.name=String(p.name || 'WANDERER').slice(0,45);
+    a.profile.water=clampInt(p.water,0,100000,0); a.profile.waterGoal=clampInt(p.waterGoal,250,10000,2000);
+    a.profile.waterDate=/^\d{4}-\d{2}-\d{2}$/.test(p.waterDate||'')?p.waterDate:localDay();
+    a.profile.energy=(Number(p.energy)>=1 && Number(p.energy)<=10)?String(Number(p.energy)):'';
+    for(const k of Object.keys(bodyParts)) a.profile.limbs[k]=clampInt(p.limbs&&p.limbs[k],0,100,100);
+    if(Array.isArray(p.readouts)) for(let i=0;i<Math.min(4,p.readouts.length);i++){ const r=p.readouts[i]||{};a.profile.readouts[i]={label:String(r.label||['RAD','EFF','CLK','ENG'][i]).slice(0,8).toUpperCase(),value:String(r.value??'—').slice(0,20)}; }
+    for(const k of Object.keys(labels)) a.profile.special[k]=clampInt(p.special&&p.special[k],1,10,5);
+    a.perks=Array.isArray(raw.perks)?raw.perks.slice(0,80).map(x=>String(x).slice(0,60)).filter(Boolean):[];
+    a.inventory=Array.isArray(raw.inventory)?raw.inventory.slice(0,500).map(x=>({id:String(x.id || makeId()),name:String(x.name||'').slice(0,100),category:String(x.category||'Other').slice(0,50),quantity:clampInt(x.quantity,1,99999,1),location:String(x.location||'').slice(0,100)})).filter(x=>x.name):[];
+    a.quests=Array.isArray(raw.quests)?raw.quests.slice(0,600).map(x=>({id:String(x.id||makeId()),title:String(x.title||'').slice(0,130),kind:['main','side','misc'].includes(x.kind)?x.kind:'misc',xp:clampInt(x.xp,0,1000,25),due:/^\d{4}-\d{2}-\d{2}$/.test(x.due||'')?x.due:'',notes:String(x.notes||'').slice(0,180),done:!!x.done})).filter(x=>x.title):[];
+    a.stations=Array.isArray(raw.stations)?raw.stations.slice(0,80).map(x=>({id:String(x.id||makeId()),name:String(x.name||'').slice(0,90),url:String(x.url||'').slice(0,500)})).filter(x=>x.name && safeUrl(x.url)):[];
+    return a;
+  }
+  function makeId() { return 'entry-'+Date.now()+'-'+Math.random().toString(36).slice(2,8); }
+  function safeUrl(raw){try{const a=new URL(raw);return a.protocol==='https:'||a.protocol==='http:';}catch{return false;}}
+  let storageOK=false, state=fresh(), filter='active', mapLoaded=false, mapLat=41.8781, mapLon=-87.6298, hasLocation=false;
+  try { localStorage.setItem(KEY+'-test','yes');localStorage.removeItem(KEY+'-test');storageOK=true; const stored=localStorage.getItem(KEY);if(stored)state=normalize(JSON.parse(stored)); } catch(e){ console.warn('Local save unavailable:',e); }
+  function save() { if(!storageOK)return;try{localStorage.setItem(KEY,JSON.stringify(state));$('save-status').textContent='LOCAL AUTOSAVE: ACTIVE';}catch(e){$('save-status').textContent='LOCAL AUTOSAVE FAILED — EXPORT A BACKUP';} }
+  function notice(s) {$('notice').textContent=s; clearTimeout(notice.timer);notice.timer=setTimeout(()=>$('notice').textContent='',6500);}
+  function waterDay() { if(state.profile.waterDate!==localDay()){state.profile.waterDate=localDay();state.profile.water=0;save();} }
+  function stats(){const done=state.quests.filter(q=>q.done);const xp=done.reduce((n,q)=>n+q.xp,0);return {done:done.length,xp,level:Math.floor(xp/100)+1,active:state.quests.length-done.length};}
+  function renderHeader(){const s=stats();$('player-label').textContent='USER: '+state.profile.name.toUpperCase();$('mini-stats').textContent=`LVL ${String(s.level).padStart(2,'0')} · ${s.xp} XP · ${s.active} ACTIVE QUEST${s.active===1?'':'S'}`;}
+  function renderConditionGraphics(){
+    const p=state.profile,s=stats(),pairs=Object.entries(bodyParts),vals=pairs.map(([key])=>p.limbs[key]);
+    const avg=Math.round(vals.reduce((sum,n)=>sum+n,0)/vals.length),broken=pairs.filter(([key])=>p.limbs[key]===0).map(([,v])=>v);
+    $('report-callsign').textContent=p.name.toUpperCase();$('report-level').textContent=String(s.level).padStart(2,'0');
+    $('report-name-level').textContent=s.level;$('report-xp').textContent=s.xp;
+    $('report-health').textContent=avg+'/100';$('status-cond-number').textContent=avg+'%';
+    $('body-alert').textContent=broken.length ? 'CRIPPLED: '+broken.join(', ') : vals.some(v=>v<50) ? 'CONDITION BELOW 50% — MONITOR STATUS' : 'ALL REGIONS OPERATIONAL';
+    const expression=broken.length?'sad':vals.some(v=>v<50)?'worried':'smile';
+    ['smile','worried','sad'].forEach(name=>$('face-'+name).style.display=name===expression?'':'none');
+    $('vault-body').setAttribute('aria-label', 'Full-body condition drawing. '+pairs.map(([k,label])=>label+': '+p.limbs[k]+' percent'+(p.limbs[k]===0?', crippled':'')).join('; '));
+    const meterMax={head:67,chest:72,leftArm:87,rightArm:87,leftLeg:87,rightLeg:87};
+    for(const [key,label] of pairs){
+      const val=p.limbs[key],isBroken=val===0;
+      $('shape-'+key).classList.toggle('crippled',isBroken);
+      $('meter-fill-'+key).setAttribute('width',String(meterMax[key]*val/100));
+      const meter=document.querySelector('[data-meter="'+key+'"]');meter.classList.toggle('crippled',isBroken);
+      const flag=$('flag-'+key);flag.textContent=isBroken?'CRIPPLED':'';
+    }
+    $('status-custom-readouts').innerHTML=p.readouts.map(r=>'<div class="status-readout"><b>'+esc(r.label)+'</b><strong>'+esc(r.value||'—')+'</strong></div>').join('');
+  }
+  function renderConditionControls(){
+    $('condition-fields').innerHTML=Object.entries(bodyParts).map(([key,label])=>{
+      const val=state.profile.limbs[key];
+      return '<div class="condition-field '+(val===0?'crippled':'')+'"><label for="condition-'+key+'">'+label+'</label><input id="condition-'+key+'" data-condition="'+key+'" type="range" min="0" max="100" step="5" value="'+val+'" aria-label="'+label+' condition percent"><output id="condition-value-'+key+'">'+val+'%</output></div>';
+    }).join('');
+    $('custom-readout-forms').innerHTML=state.profile.readouts.map((r,i)=>'<div class="readout-setting"><label for="readout-label-'+i+'">READOUT '+(i+1)+'</label><input id="readout-label-'+i+'" data-readout-label="'+i+'" type="text" maxlength="8" value="'+esc(r.label)+'" aria-label="Readout '+(i+1)+' label"><input data-readout-value="'+i+'" type="text" maxlength="20" value="'+esc(r.value)+'" aria-label="Readout '+(i+1)+' value"></div>').join('');
+  }
+  function renderStats(){waterDay();const p=state.profile,s=stats();$('level').textContent=String(s.level).padStart(2,'0');$('xp').textContent=s.xp;$('done-count').textContent=s.done;$('profile-name').value=p.name;$('water-goal').value=p.waterGoal;$('energy').value=p.energy;
+    $('water-display').textContent=p.water.toLocaleString()+' / '+p.waterGoal.toLocaleString()+' mL';$('water-progress').style.width=Math.min(100,p.water/p.waterGoal*100)+'%';
+    $('special-fields').innerHTML=Object.entries(labels).map(([k,v])=>`<div class="special-item"><label for="special-${k}">${v.toUpperCase()}</label><input id="special-${k}" data-special="${k}" type="range" min="1" max="10" value="${p.special[k]}"><output id="special-value-${k}">${p.special[k]}</output></div>`).join('');
+    $('perk-list').innerHTML=state.perks.length?state.perks.map((x,i)=>`<div class="row spread" style="margin:6px 0"><span>✦ ${esc(x)}</span><button class="btn mini danger" data-remove-perk="${i}" aria-label="Remove perk ${esc(x)}">REMOVE</button></div>`).join(''):'<p class="quiet">No perks entered yet.</p>';
+    renderConditionControls();renderConditionGraphics();
+  }
+  function renderInventory(){const search=$('inv-search').value.toLowerCase().trim();const inventory=state.inventory.filter(x=>(x.name+' '+x.category+' '+x.location).toLowerCase().includes(search));$('inv-total').textContent=state.inventory.reduce((a,b)=>a+b.quantity,0);$('inv-types').textContent=state.inventory.length;$('inv-categories').textContent=new Set(state.inventory.map(x=>x.category)).size;$('inv-summary').textContent=`${inventory.length} MATCHING ENTRIES`;
+    $('inv-list').innerHTML=inventory.length?inventory.map(x=>`<article class="item"><div class="row spread"><div><div class="item-title">${esc(x.name)}</div><div class="item-meta">${esc(x.category)} · LOCATION: ${esc(x.location||'Unspecified')}</div></div><span class="pill">× ${x.quantity}</span></div><div class="item-actions"><button class="btn mini" data-inv-add="${esc(x.id)}">+1</button><button class="btn mini" data-inv-minus="${esc(x.id)}">−1</button><button class="btn mini danger" data-inv-delete="${esc(x.id)}">DELETE</button></div></article>`).join(''):'<div class="empty">No items found. Add one above.</div>';
+  }
+  function displayDue(d){if(!d)return '';const parts=d.split('-').map(Number);return `${parts[1]}/${parts[2]}/${parts[0]}`;}
+  function renderQuests(){const s=stats();$('quest-active').textContent=s.active;$('quest-finished').textContent=s.done;$('quest-potential').textContent=state.quests.filter(q=>!q.done).reduce((n,q)=>n+q.xp,0);
+    const list=state.quests.filter(q=>filter==='active'?!q.done:filter==='done'?q.done:filter==='all'?true:!q.done&&q.kind===filter);
+    $('quest-filters').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.filter===filter)));
+    $('quest-list').innerHTML=list.length?list.map(q=>`<article class="item ${q.done?'completed':''}"><div class="row spread"><div class="row"><span class="pill">${esc(q.kind.toUpperCase())}</span><span class="pill">+${q.xp} XP</span></div>${q.due?`<span class="item-meta">DUE ${displayDue(q.due)}</span>`:''}</div><div class="item-title" style="margin-top:8px">${esc(q.title)}</div>${q.notes?`<div class="item-meta">${esc(q.notes)}</div>`:''}<div class="item-actions"><button class="btn mini ${q.done?'':'primary'}" data-quest-toggle="${esc(q.id)}">${q.done?'↶ REOPEN':'✓ COMPLETE'}</button><button class="btn mini danger" data-quest-delete="${esc(q.id)}">DELETE</button></div></article>`).join(''):'<div class="empty">No quests in this category. Add an objective above.</div>';
+  }
+  function renderStations(){const entries=presets.concat(state.stations);$('station-list').innerHTML=entries.map(st=>`<div class="station"><div><div class="item-title">${esc(st.name)}</div><div class="item-meta">${st.preset?'PRESET FREQUENCY':'CUSTOM FREQUENCY'}</div></div><div class="row"><button class="btn mini primary" data-station-play="${esc(st.id)}">▶ TUNE</button>${!st.preset?`<button class="btn mini danger" data-station-delete="${esc(st.id)}">DELETE</button>`:''}</div></div>`).join('');}
+  function render(){renderHeader();renderStats();renderInventory();renderQuests();renderStations();}
+  function changeTab(tab){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+tab));document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.tab===tab)));if(tab==='map'&&!mapLoaded){updateMap();mapLoaded=true;}}
+  document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>changeTab(btn.dataset.tab)));
+  $('profile-name').addEventListener('change',e=>{state.profile.name=e.target.value.trim()||'WANDERER';save();renderHeader();renderConditionGraphics();e.target.value=state.profile.name;});
+  $('condition-fields').addEventListener('input',e=>{
+    const key=e.target.dataset.condition;if(!(key in bodyParts))return;
+    const val=clampInt(e.target.value,0,100,100);
+    state.profile.limbs[key]=val;
+    $('condition-value-'+key).textContent=val+'%';
+    e.target.closest('.condition-field').classList.toggle('crippled',val===0);
+    renderConditionGraphics();save();
+  });
+  $('condition-restore').addEventListener('click',()=>{
+    if(!confirm('Restore all body condition levels to 100?'))return;
+    Object.keys(bodyParts).forEach(k=>state.profile.limbs[k]=100);
+    renderConditionControls();renderConditionGraphics();save();notice('All body regions restored to 100%.');
+  });
+  $('custom-readout-forms').addEventListener('input',e=>{
+    if(e.target.dataset.readoutLabel!==undefined){
+      const i=Number(e.target.dataset.readoutLabel);state.profile.readouts[i].label=e.target.value.toUpperCase().slice(0,8);
+    } else if(e.target.dataset.readoutValue!==undefined){
+      const i=Number(e.target.dataset.readoutValue);state.profile.readouts[i].value=e.target.value.slice(0,20);
+    } else return;
+    renderConditionGraphics();save();
+  });
+  $('energy').addEventListener('change',e=>{state.profile.energy=e.target.value;save();});
+  $('water-goal').addEventListener('change',e=>{state.profile.waterGoal=clampInt(e.target.value,250,10000,2000);save();renderStats();});
+  $('water-add').addEventListener('click',()=>{waterDay();state.profile.water=Math.min(100000,state.profile.water+250);save();renderStats();});
+  $('water-undo').addEventListener('click',()=>{waterDay();state.profile.water=Math.max(0,state.profile.water-250);save();renderStats();});
+  $('water-reset').addEventListener('click',()=>{state.profile.water=0;state.profile.waterDate=localDay();save();renderStats();});
+  $('special-fields').addEventListener('input',e=>{if(!e.target.dataset.special)return;const k=e.target.dataset.special;state.profile.special[k]=clampInt(e.target.value,1,10,5);$('special-value-'+k).textContent=state.profile.special[k];save();});
+  $('perk-form').addEventListener('submit',e=>{e.preventDefault();const value=$('perk-name').value.trim();if(!value)return;if(state.perks.length>=80){notice('Perk limit reached.');return;}state.perks.push(value);$('perk-name').value='';save();renderStats();});
+  $('perk-list').addEventListener('click',e=>{const btn=e.target.closest('[data-remove-perk]');if(!btn)return;state.perks.splice(Number(btn.dataset.removePerk),1);save();renderStats();});
+  $('inv-form').addEventListener('submit',e=>{e.preventDefault();if(state.inventory.length>=500){notice('Inventory limit reached.');return;}const name=$('inv-name').value.trim();if(!name)return;state.inventory.push({id:makeId(),name,category:$('inv-category').value,quantity:clampInt($('inv-quantity').value,1,99999,1),location:$('inv-location').value.trim()});e.target.reset();$('inv-quantity').value='1';save();renderInventory();notice('Item stored in inventory.');});
+  $('inv-search').addEventListener('input',renderInventory);
+  $('inv-list').addEventListener('click',e=>{const btn=e.target.closest('button');if(!btn)return;const type=btn.hasAttribute('data-inv-add')?'add':btn.hasAttribute('data-inv-minus')?'minus':btn.hasAttribute('data-inv-delete')?'delete':null;if(!type)return;const id=btn.dataset.invAdd||btn.dataset.invMinus||btn.dataset.invDelete;const idx=state.inventory.findIndex(x=>x.id===id);if(idx<0)return;if(type==='delete'){if(!confirm('Delete this inventory item?'))return;state.inventory.splice(idx,1);}else if(type==='add')state.inventory[idx].quantity=Math.min(99999,state.inventory[idx].quantity+1);else state.inventory[idx].quantity=Math.max(1,state.inventory[idx].quantity-1);save();renderInventory();});
+  $('quest-form').addEventListener('submit',e=>{e.preventDefault();if(state.quests.length>=600){notice('Quest limit reached.');return;}const title=$('quest-title').value.trim();if(!title)return;state.quests.push({id:makeId(),title,kind:$('quest-kind').value,xp:clampInt($('quest-xp').value,0,1000,25),due:$('quest-due').value,notes:$('quest-notes').value.trim(),done:false});e.target.reset();$('quest-xp').value='25';filter='active';save();render();notice('New quest accepted.');});
+  $('quest-filters').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(b){filter=b.dataset.filter;renderQuests();}});
+  $('quest-list').addEventListener('click',e=>{const btn=e.target.closest('button');if(!btn)return;const id=btn.dataset.questToggle||btn.dataset.questDelete;const idx=state.quests.findIndex(x=>x.id===id);if(idx<0)return;if(btn.hasAttribute('data-quest-delete')){if(!confirm('Delete this quest permanently?'))return;state.quests.splice(idx,1);}else {state.quests[idx].done=!state.quests[idx].done;notice(state.quests[idx].done?'QUEST COMPLETE — XP AWARDED':'Quest reopened — XP adjusted.');}save();render();});
+  function updateMap(){const deltaLat=.035,deltaLon=.07;const url=new URL('https://www.openstreetmap.org/export/embed.html');url.searchParams.set('bbox',[mapLon-deltaLon,mapLat-deltaLat,mapLon+deltaLon,mapLat+deltaLat].join(','));url.searchParams.set('layer','mapnik');if(hasLocation)url.searchParams.set('marker',mapLat+','+mapLon);$('map-iframe').src=url.href;$('map-open').href=`https://www.openstreetmap.org/#map=13/${mapLat}/${mapLon}`;}
+  $('find-me').addEventListener('click',()=>{const b=$('find-me');if(!navigator.geolocation){$('map-feedback').textContent='Location is not available in this browser. Open the larger map to search manually.';return;}b.disabled=true;$('map-feedback').textContent='Requesting location permission…';navigator.geolocation.getCurrentPosition(pos=>{mapLat=pos.coords.latitude;mapLon=pos.coords.longitude;hasLocation=true;updateMap();$('map-place').textContent=`Centered at your reported position (${mapLat.toFixed(4)}, ${mapLon.toFixed(4)}).`;$('map-feedback').textContent='Location centered successfully. This is a location snapshot, not continuous tracking. No position is saved in your quest data.';b.disabled=false;},err=>{const reasons={1:'Location permission was denied.',2:'Your location could not be determined.',3:'Location request timed out.'};$('map-feedback').textContent=(reasons[err.code]||'Unable to get your location.')+' The map can still be panned and zoomed manually.';b.disabled=false;},{enableHighAccuracy:false,timeout:14000,maximumAge:120000});});
+  const player=$('radio-player');
+  $('station-form').addEventListener('submit',e=>{e.preventDefault();const name=$('station-name').value.trim(),url=$('station-url').value.trim();if(!name||!safeUrl(url)){notice('Enter a station name and valid HTTP(S) URL.');return;}if(state.stations.length>=80){notice('Station limit reached.');return;}state.stations.push({id:makeId(),name,url});e.target.reset();save();renderStations();notice('Frequency saved.');});
+  $('station-list').addEventListener('click',e=>{const btn=e.target.closest('button');if(!btn)return;if(btn.hasAttribute('data-station-delete')){const idx=state.stations.findIndex(s=>s.id===btn.dataset.stationDelete);if(idx<0||!confirm('Delete this saved station?'))return;state.stations.splice(idx,1);save();renderStations();return;}const st=presets.concat(state.stations).find(s=>s.id===btn.dataset.stationPlay);if(!st)return;player.pause();player.src=st.url;player.load();$('radio-current').textContent=st.name;$('radio-feedback').textContent='Connecting to stream…';player.play().then(()=>$('radio-feedback').textContent='Streaming live audio.').catch(()=>$('radio-feedback').textContent='Playback unavailable here. Try a direct MP3 link or open the station website.');});
+  $('radio-stop').addEventListener('click',()=>{player.pause();player.removeAttribute('src');player.load();$('radio-current').textContent='NO FREQUENCY TUNED';$('radio-feedback').textContent='Stopped.';$('equalizer').classList.remove('playing');});
+  player.addEventListener('playing',()=>{$('equalizer').classList.add('playing');$('radio-feedback').textContent='Audio playing.';});
+  player.addEventListener('pause',()=>$('equalizer').classList.remove('playing'));
+  player.addEventListener('error',()=>{$('equalizer').classList.remove('playing');if(player.src)$('radio-feedback').textContent='Station connection failed. It may be offline or incompatible.';});
+  $('backup-export').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),href=URL.createObjectURL(blob),a=document.createElement('a');a.href=href;a.download='wanderer-backup-'+localDay()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),1500);notice('Backup exported to your downloads.');});
+  $('backup-import').addEventListener('click',()=>$('backup-file').click());
+  $('backup-file').addEventListener('change',async e=>{const file=e.target.files&&e.target.files[0];e.target.value='';if(!file)return;if(file.size>1024*1024){notice('Save file is too large (limit 1 MB).');return;}try{const raw=JSON.parse(await file.text());if(raw.version!==1)throw Error('This is not a version 1 save file.');const imported=normalize(raw);if(!confirm('Replace your current data with this backup? Export a backup first if needed.'))return;state=imported;save();render();notice('Save data imported successfully.');}catch(err){notice('Import failed: '+err.message);}});
+  function clock(){const d=new Date();$('clock').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});$('connection').textContent=navigator.onLine?'NETWORK LINK READY':'OFFLINE — LOCAL MODE';if(state.profile.waterDate!==localDay())renderStats();}
+  $('save-status').textContent=storageOK?'LOCAL AUTOSAVE: ACTIVE':'LOCAL AUTOSAVE UNAVAILABLE — USE EXPORT SAVE';
+  render();clock();setInterval(clock,60000);
+})();
+</script>
+<script>
+(function () {
+  'use strict';
+  function switchSub(section, name) {
+    section.querySelectorAll('.subview').forEach(el => el.classList.toggle('active', el.dataset.subview === name));
+    section.querySelectorAll('.subtab').forEach(el => el.setAttribute('aria-pressed', String(el.dataset.switch === name)));
+  }
+  document.querySelectorAll('.view:has(.subnav)').forEach(section => {
+    const first=section.querySelector('.subtab');
+    if (first) switchSub(section, first.dataset.switch);
+    section.querySelectorAll('.subtab').forEach(btn => btn.addEventListener('click', () => switchSub(section, btn.dataset.switch)));
+  });
+  const questForm = document.getElementById('quest-form');
+  questForm.addEventListener('submit', () => switchSub(document.getElementById('view-data'), 'quests'));
+  const invForm = document.getElementById('inv-form');
+  invForm.addEventListener('submit', () => switchSub(document.getElementById('view-inv'), 'items'));
+  const radioForm = document.getElementById('station-form');
+  radioForm.addEventListener('submit', () => switchSub(document.getElementById('view-radio'), 'listen'));
+})();
+</script></body>
+</html>

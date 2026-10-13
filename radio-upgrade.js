@@ -3,6 +3,8 @@
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
+  const versionLabel=document.querySelector('.subbrand');
+  if(versionLabel)versionLabel.textContent=versionLabel.textContent.replace(/V\s*1\.[13]/,'V 1.4');
   const player = $('radio-player');
   const stationList = $('station-list');
   const radioView = document.querySelector('#view-radio [data-subview="listen"]');
@@ -105,7 +107,7 @@
   const feedback=$('radio-feedback');
   const sourcePage=$('radio-source-page');
   const direct=$('radio-stream-direct');
-  let selected=fallout[0],currentStation=null,attemptIndex=0,timer=null,session=0,heard=false;
+  let selected=fallout[0],currentStation=null,attemptIndex=0,timer=null,session=0,heard=false,attemptGeneration=0,lastFailedGeneration=-1;
 
   function updateDial(){
     dialName.textContent=selected.name;
@@ -137,6 +139,7 @@
     stopTimeout();
     heard=false;
     const ownSession=session;
+    const ownAttempt=++attemptGeneration;
     const url=currentStation.urls[attemptIndex];
     direct.href=url;
     player.pause();
@@ -147,12 +150,12 @@
     markPlaying();
     setFeedback('CONNECTING · '+currentStation.provider+' · SOURCE '+(attemptIndex+1)+'/'+currentStation.urls.length);
     timer=setTimeout(()=>{
-      if(ownSession===session&&!heard)failOver('No audio received within 15 seconds');
+      if(ownSession===session&&ownAttempt===attemptGeneration&&!heard)failOver('No audio received within 15 seconds');
     },15000);
     const playPromise=player.play();
     if(playPromise&&typeof playPromise.catch==='function'){
       playPromise.catch(error=>{
-        if(ownSession!==session)return;
+        if(ownSession!==session||ownAttempt!==attemptGeneration)return;
         if(error.name==='AbortError')return;
         if(error.name==='NotAllowedError'){
           stopTimeout();
@@ -164,7 +167,8 @@
     }
   }
   function failOver(reason){
-    if(!currentStation)return;
+    if(!currentStation||lastFailedGeneration===attemptGeneration)return;
+    lastFailedGeneration=attemptGeneration;
     stopTimeout();
     if(attemptIndex+1<currentStation.urls.length){
       attemptIndex++;

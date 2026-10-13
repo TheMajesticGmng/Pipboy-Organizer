@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <meta content="#09130a" name="theme-color"/>
-<title>Wanderer • Personal Terminal (V0.5)</title>
+<title>Wanderer • Personal Terminal (V0.8)</title>
 <style>
     :root { color-scheme: dark; --bg:#070f08; --panel:#0c1a0f; --panel2:#102417; --line:#47794a; --soft:#8cbd81; --bright:#b4f7a2; --muted:#71986e; --danger:#ffb586; --dark:#071108; }
     * { box-sizing:border-box; }
@@ -164,8 +164,11 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
 .body-display {min-width:0;text-align:center;}
 .condition-topline {display:flex;justify-content:space-around;gap:8px;flex-wrap:wrap;border-top:2px solid var(--bright);border-bottom:1px solid var(--line);padding:4px 0;margin-bottom:2px;font-size:12px;}
 .body-display .hero-figure {min-height:0;padding:0;overflow:visible;display:block;}
-.body-display .hero-figure svg {display:block;width:100%;height:auto;max-height:328px;aspect-ratio:580/450;filter:drop-shadow(0 0 3px #91ef925b);color:var(--bright);}
+.body-display .hero-figure svg {display:block;width:100%;height:auto;max-height:348px;aspect-ratio:580/465;filter:drop-shadow(0 0 3px #91ef925b);color:var(--bright);}
 .body-region {transition:opacity .18s;}
+.body-display .body-region,.body-display .face {fill:none;stroke:currentColor;stroke-width:4.6;stroke-linecap:round;stroke-linejoin:round;}
+.body-display .face {stroke-width:4.3;}
+.body-display .eyes {fill:currentColor;stroke:none;}
 .body-region.crippled {stroke-dasharray:9 9;opacity:.87;}
 .body-meters .meter-track {fill:#0a210e;stroke:var(--bright);}
 .body-meters .meter-fill {fill:var(--bright);stroke:none;}
@@ -189,7 +192,7 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
 <body>
 <div class="shell"><div class="bezel"><main class="screen">
 <header class="mast">
-<div><div class="brand">WANDERER <span style="font-size:.60em;color:var(--soft)">// PERSONAL TERMINAL</span></div><div class="subbrand">PERSONAL INFORMATION PROCESSOR  ·  MARK IV INSPIRED  ·  V 0.5</div></div>
+<div><div class="brand">WANDERER <span style="font-size:.60em;color:var(--soft)">// PERSONAL TERMINAL</span></div><div class="subbrand">PERSONAL INFORMATION PROCESSOR  ·  MARK IV INSPIRED  ·  V 0.8</div></div>
 <div class="top-meta"><strong id="clock">--:--</strong><span id="connection">LOCAL MODE</span></div>
 </header>
 <nav aria-label="Primary sections" class="tabbar" role="tablist">
@@ -213,71 +216,31 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
   <div class="body-display">
     <div class="condition-topline"><span>LVL <b id="report-level">01</b></span><span>CND <b id="report-health">100/100</b></span><span>XP <b id="report-xp">0</b></span></div>
     <div class="hero-figure">
-      <svg id="vault-body" viewBox="0 0 580 450" role="img" aria-label="Illustrated character with editable condition of head, chest, arms and legs">
-        <defs><filter id="crt-halo" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.1"/></filter></defs>
-        <g class="body-lines" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
-          <!-- Fuller jumpsuit silhouette, rounder proportions, shorter limbs, centered head. -->
-          <g id="shape-chest" class="body-region">
-            <path d="M261 174 Q244 176 236 191 Q226 201 228 222 L226 281 Q227 302 241 310 Q288 322 339 310 Q351 301 349 281 L351 222 Q352 199 336 188 Q326 177 314 173"/>
-            <path d="M258 183 L287 207 L316 181 M277 188 L288 199 L301 187" stroke-width="3"/>
-            <path d="M232 282 Q290 294 345 282 M233 297 Q290 308 346 297" stroke-width="3"/>
-            <path d="M290 210 L290 282 M304 226 L307 232 M305 245 L307 249" stroke-width="2.5" opacity=".8"/>
-          </g>
-          <g id="shape-head" class="body-region">
-            <path d="M249 97 Q250 84 259 80 Q259 69 274 60 Q285 49 301 53 Q320 48 331 62 Q342 73 336 93 L335 131 Q333 160 311 174 Q287 185 265 168 Q248 155 247 128 Z"/>
-            <!-- Bold sculpted swoop and tuft: hair belongs to head damage region. -->
-            <path d="M248 103 Q242 91 248 79 Q253 72 265 72 Q261 61 271 54 Q280 47 292 54 Q299 42 313 47 Q330 42 336 58 Q346 62 346 75 Q346 89 334 98 Q327 86 315 91 Q306 81 292 89 Q278 80 266 94 Q255 87 248 103 Z"/>
-            <path d="M261 76 Q275 62 291 69 Q303 56 318 64 M285 80 Q301 71 313 78" stroke-width="3"/>
-            <path d="M258 143 Q259 161 275 171 M321 167 Q331 157 332 145" stroke-width="2.4"/>
-          </g>
-          <g id="shape-leftArm" class="body-region">
-            <path d="M238 190 Q218 187 206 194 L189 200 Q174 196 157 188 L151 176 Q145 167 138 172 Q134 175 145 187 L132 181 Q121 175 118 181 Q116 187 134 196 L119 190 Q111 190 112 196 Q114 201 138 208 L125 204 Q123 210 140 216 Q166 232 191 227 L237 217"/>
-            <path d="M173 197 Q166 209 169 221" stroke-width="3"/>
-          </g>
-          <g id="shape-rightArm" class="body-region">
-            <path d="M337 190 Q356 187 370 194 L387 200 Q403 196 418 188 L425 176 Q432 167 440 172 Q443 176 433 187 L446 181 Q456 175 460 181 Q463 188 445 196 L459 190 Q468 190 466 197 Q462 202 441 208 L454 204 Q456 211 438 216 Q411 232 386 227 L339 217"/>
-            <path d="M403 197 Q412 209 408 221" stroke-width="3"/>
-          </g>
-          <g id="shape-leftLeg" class="body-region">
-            <path d="M243 309 Q239 338 238 356 L222 388 Q206 394 205 402 Q201 410 218 414 Q242 420 257 412 Q263 406 261 398 L277 320"/>
-            <path d="M224 393 Q242 398 260 395" stroke-width="3"/>
-          </g>
-          <g id="shape-rightLeg" class="body-region">
-            <path d="M334 309 Q340 339 342 357 L358 388 Q372 393 375 402 Q378 411 360 414 Q337 420 323 412 Q318 408 321 398 L305 320"/>
-            <path d="M321 395 Q340 399 358 393" stroke-width="3"/>
-          </g>
-          <g id="face-smile" class="face-expression">
-            <path d="M266 109 Q276 102 283 110 M301 110 Q312 102 320 109" stroke-width="3"/>
-            <path d="M276 119 v4 M310 119 v4" stroke-width="5"/>
-            <path d="M292 112 l-7 17 q-1 5 8 4" stroke-width="3"/>
-            <path d="M270 142 Q289 160 313 141 Q292 148 270 142 Z" stroke-width="2.8"/>
-          </g>
-          <g id="face-worried" class="face-expression" style="display:none">
-            <path d="M264 112 l19 -10 M301 102 l20 10" stroke-width="3"/>
-            <path d="M274 120 v4 M312 120 v4" stroke-width="5"/>
-            <path d="M292 113 l-7 18 q0 5 8 3" stroke-width="3"/>
-            <path d="M273 148 Q290 139 312 147" stroke-width="3.5"/>
-          </g>
-          <g id="face-sad" class="face-expression" style="display:none">
-            <path d="M263 112 l19 -12 M300 100 l21 12" stroke-width="3"/>
-            <path d="M274 120 l4 4 M312 120 l-4 4" stroke-width="4"/>
-            <path d="M292 114 l-7 17 q0 4 8 3" stroke-width="3"/>
-            <path d="M273 157 Q291 133 313 157" stroke-width="4"/>
-            <path d="M263 134 q-4 9 0 15" stroke-width="2"/>
-          </g>
-        </g>
-        <g class="body-meters" stroke="currentColor" stroke-width="2">
-          <g data-meter="head"><rect class="meter-track" x="253" y="15" width="71" height="13"/><rect class="meter-fill" id="meter-fill-head" x="255" y="17" width="67" height="9"/></g>
-          <g data-meter="leftArm"><rect class="meter-track" x="43" y="124" width="91" height="13"/><rect class="meter-fill" id="meter-fill-leftArm" x="45" y="126" width="87" height="9"/></g>
-          <g data-meter="rightArm"><rect class="meter-track" x="445" y="124" width="91" height="13"/><rect class="meter-fill" id="meter-fill-rightArm" x="447" y="126" width="87" height="9"/></g>
-          <g data-meter="chest"><rect class="meter-track" x="255" y="218" width="76" height="13"/><rect class="meter-fill" id="meter-fill-chest" x="257" y="220" width="72" height="9"/></g>
-          <g data-meter="leftLeg"><rect class="meter-track" x="43" y="353" width="91" height="13"/><rect class="meter-fill" id="meter-fill-leftLeg" x="45" y="355" width="87" height="9"/></g>
-          <g data-meter="rightLeg"><rect class="meter-track" x="445" y="353" width="91" height="13"/><rect class="meter-fill" id="meter-fill-rightLeg" x="447" y="355" width="87" height="9"/></g>
-        </g>
-        <g class="body-flag-text" font-size="17" font-family="Consolas, monospace" font-weight="bold" text-anchor="middle">
-          <text id="flag-head" x="290" y="10"></text><text id="flag-leftArm" x="93" y="113"></text><text id="flag-rightArm" x="490" y="113"></text><text id="flag-chest" x="292" y="212"></text><text id="flag-leftLeg" x="89" y="342"></text><text id="flag-rightLeg" x="488" y="342"></text>
-        </g>
-      </svg>
+      <svg id="vault-body" viewBox="0 0 580 465" role="img" aria-label="Interactive Vault Boy body condition. Head, arms, torso and legs respond independently to damage">
+<!-- Refined v0.8 silhouette: shortened neck and arms, broader shoulders and torso, 25% wider matched legs. -->
+<g id="shape-head" class="body-region">
+<path d="M268 174 Q274 171 276 165 Q264 156 259 145 Q251 132 253 113 Q251 103 255 95 Q248 88 251 79 Q252 73 259 68 Q258 62 265 59 Q271 61 274 61 Q277 49 285 53 Q293 58 299 51 Q305 40 313 47 Q321 52 326 49 Q335 50 338 59 Q349 62 350 70 Q359 80 356 91 Q363 101 361 115 Q361 137 349 150 Q340 160 327 163 Q314 169 319 174"/>
+</g>
+<!-- Arms slope gently outward, curve organically, and terminate in distinct splayed fingers. -->
+<g id="shape-leftArm" class="body-region" transform="translate(117.25 64.3125) scale(.5625)"><path d="M268 195 Q236 207 197 209 Q174 211 152 207 Q138 200 125 191 Q114 183 106 192 Q103 198 113 212 L126 223 Q114 218 98 216 Q85 215 85 225 Q85 233 108 235 Q91 234 83 243 Q81 252 99 251 L112 250 Q88 254 89 262 Q92 272 108 265 Q119 259 134 261 Q159 266 177 278 Q200 289 233 288 Q242 286 247 285"/></g>
+<g id="shape-rightArm" class="body-region" transform="translate(139.5625 70.5) scale(.5625)"><path d="M319 184 Q332 194 338 199 Q369 210 403 216 Q437 222 463 220 Q484 218 500 207 Q515 197 524 198 Q536 201 523 218 L511 231 Q526 229 542 231 Q553 235 547 245 Q541 251 522 251 Q550 251 555 260 Q558 270 538 271 L524 267 Q548 276 545 286 Q542 295 526 287 Q516 280 504 280 Q480 277 467 285 Q431 299 398 298 Q373 298 346 289 Q339 287 333 287"/></g>
+<!-- The torso is a continuous human silhouette; no added clothes or decorative lines. -->
+<g id="shape-chest" class="body-region"><path d="M256.2 224.6 Q241 265 239 292 Q239 321 244 342 M326.9 231.4 Q342 267 342 292 Q342 319 336 342"/></g>
+<!-- Pointed, angled footwear is defined ONLY by the outside silhouette. -->
+<g id="shape-leftLeg" class="body-region"><path d="M244 342 Q238 355 226 377 L204 415 Q191 410 178 410 Q160 410 156 419 Q154 427 170 437 Q191 449 211 452 Q231 455 242 447 Q248 440 252 428 L283 363"/></g>
+<g id="shape-rightLeg" class="body-region" transform="translate(580 0) scale(-1 1)"><path d="M244 342 Q238 355 226 377 L204 415 Q191 410 178 410 Q160 410 156 419 Q154 427 170 437 Q191 449 211 452 Q231 455 242 447 Q248 440 252 428 L283 363"/></g>
+<!-- Facial features are deliberately preserved as a separately switchable layer. -->
+<g id="face-smile" class="face" transform="translate(72.5 -12) scale(.75)">
+<path d="M267 122 l11 -5 M309 117 l11 11 M292 135 l-11 22 q0 5 10 11 M265 190 Q294 209 323 192 M267 190 Q289 198 321 192" stroke-width="4"/>
+<g class="eyes"><ellipse cx="273" cy="147" rx="4.7" ry="7.6" stroke="none"/><ellipse cx="310" cy="149" rx="4.7" ry="7.6" stroke="none"/></g></g>
+<g id="face-worried" class="face" transform="translate(72.5 -12) scale(.75)" style="display:none"><path d="M265 126 l13 -8 M308 118 l15 10 M291 133 l-8 24 q2 4 9 7 M271 193 Q289 182 313 192"/><g class="eyes"><ellipse cx="273" cy="148" rx="4.7" ry="7" stroke="none"/><ellipse cx="311" cy="148" rx="4.7" ry="7" stroke="none"/></g></g>
+<g id="face-sad" class="face" transform="translate(72.5 -12) scale(.75)" style="display:none"><path d="M265 129 l14 -12 M307 116 l15 14 M291 134 l-8 23 q2 6 9 7 M267 201 Q291 173 318 201"/><g class="eyes"><path d="M270 146 l7 8 M315 145 l-8 8" stroke-width="5"/></g></g>
+<g class="body-meters" stroke="currentColor" stroke-width="1.5"><g data-meter="head"><rect class="meter-track" x="257" y="24" width="74" height="12"/><rect class="meter-fill" id="meter-fill-head" x="259" y="26" width="70" height="8"/></g>
+<g data-meter="leftArm"><rect class="meter-track" x="113" y="164" width="77" height="12"/><rect class="meter-fill" id="meter-fill-leftArm" x="115" y="166" width="73" height="8"/></g><g data-meter="rightArm"><rect class="meter-track" x="390" y="164" width="77" height="12"/><rect class="meter-fill" id="meter-fill-rightArm" x="392" y="166" width="73" height="8"/></g>
+<g data-meter="chest"><rect class="meter-track" x="252" y="253" width="75" height="12"/><rect class="meter-fill" id="meter-fill-chest" x="254" y="255" width="71" height="8"/></g>
+<g data-meter="leftLeg"><rect class="meter-track" x="95" y="375" width="73" height="12"/><rect class="meter-fill" id="meter-fill-leftLeg" x="97" y="377" width="69" height="8"/></g><g data-meter="rightLeg"><rect class="meter-track" x="424" y="375" width="73" height="12"/><rect class="meter-fill" id="meter-fill-rightLeg" x="426" y="377" width="69" height="8"/></g></g>
+<g class="body-flag-text" font-size="13" font-family="Consolas, monospace" font-weight="bold" text-anchor="middle"><text id="flag-head" x="294" y="18"></text><text id="flag-leftArm" x="151" y="156"></text><text id="flag-rightArm" x="428" y="156"></text><text id="flag-chest" x="292" y="247"></text><text id="flag-leftLeg" x="131" y="365"></text><text id="flag-rightLeg" x="460" y="365"></text></g>
+</svg>
     </div>
     <div class="character-line"><span id="report-callsign">WANDERER</span> · Level <span id="report-name-level">1</span></div>
     <div class="body-alert" id="body-alert" aria-live="polite">ALL SYSTEMS NORMAL</div>
@@ -360,7 +323,7 @@ input,select,textarea {border-radius:0;border-color:#47783f;background:#071609;}
     const expression=broken.length?'sad':vals.some(v=>v<50)?'worried':'smile';
     ['smile','worried','sad'].forEach(name=>$('face-'+name).style.display=name===expression?'':'none');
     $('vault-body').setAttribute('aria-label', 'Full-body condition drawing. '+pairs.map(([k,label])=>label+': '+p.limbs[k]+' percent'+(p.limbs[k]===0?', crippled':'')).join('; '));
-    const meterMax={head:67,chest:72,leftArm:87,rightArm:87,leftLeg:87,rightLeg:87};
+    const meterMax={head:70,chest:71,leftArm:73,rightArm:73,leftLeg:69,rightLeg:69};
     for(const [key,label] of pairs){
       const val=p.limbs[key],isBroken=val===0;
       $('shape-'+key).classList.toggle('crippled',isBroken);
